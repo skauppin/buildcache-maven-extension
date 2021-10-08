@@ -1,0 +1,71 @@
+<buildcache>
+  <projects>
+    <project id="test-lib1">
+      <compileTriggers>
+        <fileSet>
+          <directory>compile/relative/path</directory>
+          <includes>
+            <include>compile-include-1/*</include>
+            <include>compile-include-2/* </include>
+          </includes>
+          <excludes>
+            <exclude>compile-exclude-3/*</exclude>
+            <exclude></exclude>
+            <exclude> </exclude>
+            <exclude/>
+          </excludes>
+        </fileSet>
+        <fileSet>
+          <directory>/compile/absolute/path</directory>
+          <includes>
+            <include>compile-include-4/*</include>
+            <include>compile-include-5/* </include>
+          </includes>
+          <excludes>
+            <exclude>compile-exclude-6/*</exclude>
+          </excludes>
+        </fileSet>
+      </compileTriggers>
+      <testCompileTriggers>
+        <fileSet>
+          <directory>test-compile/relative/path</directory>
+          <includes>
+            <include>test-compile-include-1/*</include>
+          </includes>
+        </fileSet>
+      </testCompileTriggers>
+      <testTriggers>
+        <fileSet>
+          <directory>test/relative/path</directory>
+          <excludes>
+            <exclude>test-exclude-1/*</exclude>
+          </excludes>
+        </fileSet>
+      </testTriggers>
+      <integrationTestTriggers>
+        <fileSet>
+          <directory>/integration-test/absolute/path</directory>
+          <excludes>
+            <exclude>integration-test-exclude-1/*</exclude>
+          </excludes>
+          <includes>
+            <include>integration-test-include-1/*</include>
+          </includes>
+        </fileSet>
+      </integrationTestTriggers>
+    </project>
+    <project id="com.test:test-lib2">
+      <compileTriggers>
+        <fileSet>
+          <directory>compile/relative/path/lib2</directory>
+          <includes>
+            <include>compile-include-lib2/*</include>
+          </includes>
+        </fileSet>
+        <fileSet>
+          <directory>/compile/absolute/path/lib2</directory>
+        </fileSet>
+      </compileTriggers>
+    </project>
+  </projects>
+</buildcache>

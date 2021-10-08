@@ -1,0 +1,9 @@
+<buildcache>
+  <configuration>
+    <cache-directory>/root/cache/dir</cache-directory>
+    <project-cache-max-size>7M</project-cache-max-size>
+    <project-cache-max-entries>100</project-cache-max-entries>
+    <project-cache-max-age>P30D</project-cache-max-age>
+    <total-cache-max-size>500M</total-cache-max-size>
+  </configuration>
+</buildcache>
