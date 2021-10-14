@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.Function;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.lifecycle.LifecycleExecutor;
@@ -38,6 +39,9 @@ public class BuildCacheImpl implements BuildCache, Initializable {
   public static final String SKIP_IT_TESTS = "skipITs";
   public static final String TEST_SUBSET = "test";
   public static final String IT_TEST_SUBSET = "it.test";
+
+  public static final String MAVEN_COMPILER_SOURCE = "maven.compiler.source";
+  public static final String MAVEN_COMPILER_TARGET = "maven.compiler.target";
 
   public static final String BUILD_CACHE_DISABLE = "buildcache.disable";
 
@@ -72,6 +76,8 @@ public class BuildCacheImpl implements BuildCache, Initializable {
   private boolean buildCacheDebug = false;
   private boolean buildCacheIgnore = false;
   private boolean buildCacheProfile = false;
+
+  private Map<String, String> compilePhaseProperties = new TreeMap<>();
 
   private Configuration configuration = new Configuration();
 
@@ -115,6 +121,15 @@ public class BuildCacheImpl implements BuildCache, Initializable {
 
     try {
       try {
+        String mavenCompilerSource = evaluate(expressionEvaluator, MAVEN_COMPILER_SOURCE);
+        if (mavenCompilerSource != null) {
+          compilePhaseProperties.put(MAVEN_COMPILER_SOURCE, mavenCompilerSource);
+        }
+        String mavenCompilerTarget = evaluate(expressionEvaluator, MAVEN_COMPILER_TARGET);
+        if (mavenCompilerTarget != null) {
+          compilePhaseProperties.put(MAVEN_COMPILER_TARGET, mavenCompilerTarget);
+        }
+
         userHome = evaluate(expressionEvaluator, USER_HOME);
         mavenHome = evaluate(expressionEvaluator, MAVEN_HOME);
         fullCacheClean = checkProperty(expressionEvaluator, BUILD_CACHE_FULL_CLEAN);
@@ -452,14 +467,16 @@ public class BuildCacheImpl implements BuildCache, Initializable {
   private void configureMainCompile(ProjectBuildStatus projectStatus, MavenSession session) {
     configure(projectStatus, projectStatus.getMainCompile(), session, () -> {
       hashUtil.setProjectCompilePhaseDetails(projectStatus, this, session.getCurrentProject(),
-          configuration.getMainCompileTriggers(session.getCurrentProject()));
+          configuration.getMainCompileTriggers(session.getCurrentProject()),
+          this.compilePhaseProperties);
     });
   }
 
   private void configureTestCompile(ProjectBuildStatus projectStatus, MavenSession session) {
     configure(projectStatus, projectStatus.getTestCompile(), session, () -> {
       hashUtil.setProjectTestCompilePhaseDetails(projectStatus, this, session.getCurrentProject(),
-          configuration.getTestCompileTriggers(session.getCurrentProject()));
+          configuration.getTestCompileTriggers(session.getCurrentProject()),
+          this.compilePhaseProperties);
     });
   }
 

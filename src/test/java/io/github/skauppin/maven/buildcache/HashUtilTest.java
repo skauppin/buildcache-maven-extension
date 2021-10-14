@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.maven.artifact.Artifact;
@@ -20,10 +21,6 @@ import org.codehaus.plexus.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import io.github.skauppin.maven.buildcache.BuildCache;
-import io.github.skauppin.maven.buildcache.HashUtil;
-import io.github.skauppin.maven.buildcache.MojoExecUtil;
-import io.github.skauppin.maven.buildcache.ProjectBuildStatus;
 
 public class HashUtilTest {
 
@@ -75,27 +72,29 @@ public class HashUtilTest {
         + DEPENDENCY_LIST + "--- plugins\n" + COMPILE_PLUGIN_DETAILS;
     String expectedPhaseHash = "c13839d00f91bb51d8897b185e8ee2d5";
 
-    testSetProjectCompilePhaseDetails(Collections.emptyList(), expectedPhaseDetails,
-        expectedPhaseHash);
+    testSetProjectCompilePhaseDetails(Collections.emptyList(), Collections.emptyMap(),
+        expectedPhaseDetails, expectedPhaseHash);
   }
 
   @Test
-  public void testSetProjectCompilePhaseDetailsWithAdditionalFileSets() throws IOException {
+  public void testSetProjectCompilePhaseDetailsWithAdditionalFileSetsAndProperties()
+      throws IOException {
     FileSet additionalFileSet = new FileSet();
     additionalFileSet.setDirectory(FileUtilTest.class.getResource("/").getFile());
     additionalFileSet.addInclude("trigger.txt");
 
-    String expectedPhaseDetails =
-        "--- sources\n" + TEXT_FILES_SOURCE_HASHES + "--- additional-triggers\n" + TRIGGER_TXT
-            + "--- dependencies\n" + DEPENDENCY_LIST + "--- plugins\n" + COMPILE_PLUGIN_DETAILS;
-    String expectedPhaseHash = "72f2c4ffee2c5247f466bfdd5d174d5f";
+    String expectedPhaseDetails = "--- sources\n" + TEXT_FILES_SOURCE_HASHES
+        + "--- additional-triggers\n" + TRIGGER_TXT + "--- dependencies\n" + DEPENDENCY_LIST
+        + "--- properties\nkey:value\n" + "--- plugins\n" + COMPILE_PLUGIN_DETAILS;
+    String expectedPhaseHash = "202c9de1a36e1e9d5da28c801a5cde18";
 
     testSetProjectCompilePhaseDetails(Collections.singletonList(additionalFileSet),
-        expectedPhaseDetails, expectedPhaseHash);
+        Collections.singletonMap("key", "value"), expectedPhaseDetails, expectedPhaseHash);
   }
 
   private void testSetProjectCompilePhaseDetails(List<FileSet> additionalFileSets,
-      String expectedPhaseDetails, String expectedPhaseHash) throws IOException {
+      Map<String, String> properties, String expectedPhaseDetails, String expectedPhaseHash)
+      throws IOException {
 
     ProjectBuildStatus projectStatus = new ProjectBuildStatus();
     projectStatus.setMavenExecutionPlan(mockMavenExecutionPlan());
@@ -112,7 +111,8 @@ public class HashUtilTest {
     Set<Artifact> dependencies = mockDependencies();
     Mockito.when(project.getArtifacts()).thenReturn(dependencies);
 
-    hashUtil.setProjectCompilePhaseDetails(projectStatus, buildCache, project, additionalFileSets);
+    hashUtil.setProjectCompilePhaseDetails(projectStatus, buildCache, project, additionalFileSets,
+        properties);
 
     assertEquals(expectedPhaseDetails, projectStatus.getMainCompile().getPhaseDetails());
     assertEquals(expectedPhaseHash, projectStatus.getMainCompile().getPhaseHash());
@@ -123,27 +123,30 @@ public class HashUtilTest {
     String expectedPhaseDetails = "--- sources\n" + TEXT_FILES_SOURCE_HASHES + "--- dependencies\n"
         + DEPENDENCY_LIST + "--- plugins\n" + TEST_COMPILE_PLUGIN_DETAILS;
     String expectedPhaseHash = "4d4e13db154c8c55823f9af7afc9a91f";
-    testSetProjectTestCompilePhaseDetails(Collections.emptyList(), expectedPhaseDetails,
-        expectedPhaseHash);
+    testSetProjectTestCompilePhaseDetails(Collections.emptyList(), Collections.emptyMap(),
+        expectedPhaseDetails, expectedPhaseHash);
   }
 
   @Test
-  public void testSetProjectTestCompilePhaseDetailsWithAdditionalFileSets() throws IOException {
+  public void testSetProjectTestCompilePhaseDetailsWithAdditionalFileSetsAndProperties()
+      throws IOException {
     FileSet additionalFileSet = new FileSet();
     additionalFileSet.setDirectory(FileUtilTest.class.getResource("/").getFile());
     additionalFileSet.addInclude("trigger.txt");
 
     String expectedPhaseDetails = "--- sources\n" + TEXT_FILES_SOURCE_HASHES
         + "--- additional-triggers\n" + TRIGGER_TXT + "--- dependencies\n" + DEPENDENCY_LIST
-        + "--- plugins\n" + TEST_COMPILE_PLUGIN_DETAILS;
-    String expectedPhaseHash = "653daeb94fea8e8f8d094b739556bbe8";
+        + "--- properties\nkey:value\n" + "--- plugins\n" + TEST_COMPILE_PLUGIN_DETAILS;
+    String expectedPhaseHash = "346ac217b1d3f9020c52e1b88461bd75";
 
     testSetProjectTestCompilePhaseDetails(Collections.singletonList(additionalFileSet),
-        expectedPhaseDetails, expectedPhaseHash);
+        Collections.singletonMap("key", "value"), expectedPhaseDetails, expectedPhaseHash);
   }
 
   private void testSetProjectTestCompilePhaseDetails(List<FileSet> additionalFileSets,
-      String expectedPhaseDetails, String expectedPhaseHash) throws IOException {
+      Map<String, String> properties, String expectedPhaseDetails, String expectedPhaseHash)
+      throws IOException {
+
     ProjectBuildStatus projectStatus = new ProjectBuildStatus();
     projectStatus.setMavenExecutionPlan(mockMavenExecutionPlan());
     BuildCache buildCache = Mockito.mock(BuildCache.class);
@@ -162,7 +165,7 @@ public class HashUtilTest {
     Mockito.when(project.getArtifacts()).thenReturn(dependencies);
 
     hashUtil.setProjectTestCompilePhaseDetails(projectStatus, buildCache, project,
-        additionalFileSets);
+        additionalFileSets, properties);
 
     assertEquals(expectedPhaseDetails, projectStatus.getTestCompile().getPhaseDetails());
     assertEquals(expectedPhaseHash, projectStatus.getTestCompile().getPhaseHash());
