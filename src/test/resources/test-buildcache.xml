@@ -1,7 +1,7 @@
 <buildcache>
   <projects>
     <project id="test-lib1">
-      <compileTriggers>
+      <compile-triggers>
         <fileSet>
           <directory>compile/relative/path</directory>
           <includes>
@@ -25,24 +25,24 @@
             <exclude>compile-exclude-6/*</exclude>
           </excludes>
         </fileSet>
-      </compileTriggers>
-      <testCompileTriggers>
+      </compile-triggers>
+      <test-compile-triggers>
         <fileSet>
           <directory>test-compile/relative/path</directory>
           <includes>
             <include>test-compile-include-1/*</include>
           </includes>
         </fileSet>
-      </testCompileTriggers>
-      <testTriggers>
+      </test-compile-triggers>
+      <test-triggers>
         <fileSet>
           <directory>test/relative/path</directory>
           <excludes>
             <exclude>test-exclude-1/*</exclude>
           </excludes>
         </fileSet>
-      </testTriggers>
-      <integrationTestTriggers>
+      </test-triggers>
+      <integration-test-triggers>
         <fileSet>
           <directory>/integration-test/absolute/path</directory>
           <excludes>
@@ -52,10 +52,10 @@
             <include>integration-test-include-1/*</include>
           </includes>
         </fileSet>
-      </integrationTestTriggers>
+      </integration-test-triggers>
     </project>
     <project id="com.test:test-lib2">
-      <compileTriggers>
+      <compile-triggers>
         <fileSet>
           <directory>compile/relative/path/lib2</directory>
           <includes>
@@ -65,7 +65,7 @@
         <fileSet>
           <directory>/compile/absolute/path/lib2</directory>
         </fileSet>
-      </compileTriggers>
+      </compile-triggers>
     </project>
   </projects>
 </buildcache>

@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
-import io.github.skauppin.maven.buildcache.Configuration;
 import io.github.skauppin.maven.buildcache.Configuration.ConfigurationException;
 
 public class ConfigurationTest {
@@ -135,10 +134,10 @@ public class ConfigurationTest {
   public void testFileSetWithoutDirectory() throws Exception {
     //@formatter:off
     InputStream in = config("<buildcache><projects><project id=\"test\">"
-        + "<compileTriggers>"
+        + "<compile-triggers>"
         + " <fileSet>"
         + " </fileSet>"
-        + "</compileTriggers></project></projects></buildcache>");
+        + "</compile-triggers></project></projects></buildcache>");
     //@formatter:on
     assertThrows(Configuration.ConfigurationException.class,
         () -> new Configuration().readProjectConfiguration(in),
@@ -149,11 +148,11 @@ public class ConfigurationTest {
   public void testFileSetWithEmptyDirectory() throws Exception {
     //@formatter:off
     InputStream in = config("<buildcache><projects><project id=\"test\">"
-        + "<compileTriggers>"
+        + "<compile-triggers>"
         + " <fileSet>"
         + "  <directory> </directory>"
         + " </fileSet>"
-        + "</compileTriggers></project></projects></buildcache>");
+        + "</compile-triggers></project></projects></buildcache>");
     //@formatter:on
     assertThrows(Configuration.ConfigurationException.class,
         () -> new Configuration().readProjectConfiguration(in),

@@ -48,10 +48,10 @@ public class Configuration {
   private static final String PROJECT_ELEMENT = "project";
   private static final String PROJECT_ID = "id";
 
-  private static final String MAIN_COMPILE = "compileTriggers";
-  private static final String TEST_COMPILE = "testCompileTriggers";
-  private static final String TEST_EXECUTION = "testTriggers";
-  private static final String INTEGRATION_TEST_EXECUTION = "integrationTestTriggers";
+  private static final String MAIN_COMPILE = "compile-triggers";
+  private static final String TEST_COMPILE = "test-compile-triggers";
+  private static final String TEST_EXECUTION = "test-triggers";
+  private static final String INTEGRATION_TEST_EXECUTION = "integration-test-triggers";
 
   private static final String FILESET_ELEMENT = "fileSet";
   private static final String DIRECTORY_ELEMENT = "directory";
