@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
-import org.apache.maven.model.FileSet;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.shared.model.fileset.FileSet;
 import org.codehaus.plexus.logging.Logger;
 
 public class HashUtil {
@@ -73,10 +73,10 @@ public class HashUtil {
         BuildCacheImpl.getProjectId(project), projectStatus.getTestCompile().getPhaseHash());
 
     Pair<List<FileSet>> mergedFileSets1 =
-        fileUtil.mergeFileSets(project.getResources(), configuredFileSets);
+        fileUtil.mergeResourcesToFileSets(project.getResources(), configuredFileSets);
 
     Pair<List<FileSet>> mergedFileSets2 =
-        fileUtil.mergeFileSets(project.getTestResources(), mergedFileSets1.getB());
+        fileUtil.mergeResourcesToFileSets(project.getTestResources(), mergedFileSets1.getB());
 
     List<FileSet> mainResources = mergedFileSets1.getA();
     List<FileSet> testResources = mergedFileSets2.getA();

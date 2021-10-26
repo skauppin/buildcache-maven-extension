@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.model.FileSet;
+import org.apache.maven.shared.model.fileset.FileSet;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import com.google.common.collect.ImmutableList;

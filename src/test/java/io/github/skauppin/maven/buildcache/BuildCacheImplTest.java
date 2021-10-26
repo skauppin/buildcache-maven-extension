@@ -22,11 +22,11 @@ import org.apache.maven.lifecycle.LifecycleExecutor;
 import org.apache.maven.lifecycle.LifecycleNotFoundException;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.model.Build;
-import org.apache.maven.model.FileSet;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.PluginParameterExpressionEvaluator;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.shared.model.fileset.FileSet;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,11 +34,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
-import io.github.skauppin.maven.buildcache.BuildCacheImpl;
-import io.github.skauppin.maven.buildcache.CacheCleanupExecutorImpl;
-import io.github.skauppin.maven.buildcache.Configuration;
-import io.github.skauppin.maven.buildcache.FileUtil;
-import io.github.skauppin.maven.buildcache.ProjectBuildStatus;
 
 public class BuildCacheImplTest {
 

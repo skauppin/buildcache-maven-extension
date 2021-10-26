@@ -20,8 +20,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.IOUtils;
-import org.apache.maven.model.FileSet;
-import org.codehaus.plexus.util.DirectoryScanner;
+import org.apache.maven.model.Resource;
+import org.apache.maven.shared.model.fileset.FileSet;
+import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import com.google.common.io.Files;
 
 public class FileUtil {
@@ -43,8 +44,22 @@ public class FileUtil {
     return mergeFileSets(sourceRootFileSets, filesets);
   }
 
-  public Pair<List<FileSet>> mergeFileSets(List<? extends FileSet> primary,
+  public Pair<List<FileSet>> mergeResourcesToFileSets(List<Resource> primary,
       List<FileSet> secondary) {
+    List<FileSet> primaryFileSets =
+        primary.stream().map(this::toFileSet).collect(Collectors.toList());
+    return mergeFileSets(primaryFileSets, secondary);
+  }
+
+  public FileSet toFileSet(Resource resource) {
+    FileSet set = new FileSet();
+    set.setDirectory(resource.getDirectory());
+    set.setIncludes(resource.getIncludes());
+    set.setExcludes(resource.getExcludes());
+    return set;
+  }
+
+  public Pair<List<FileSet>> mergeFileSets(List<FileSet> primary, List<FileSet> secondary) {
 
     List<FileSet> primaryCopy = new ArrayList<>(primary);
     List<FileSet> additional = new ArrayList<>();
@@ -103,16 +118,9 @@ public class FileUtil {
     if (!dir.exists()) {
       return new String[0];
     }
-    DirectoryScanner s = new DirectoryScanner();
-    s.setBasedir(set.getDirectory());
-    if (!set.getIncludes().isEmpty()) {
-      s.setIncludes(set.getIncludes().toArray(new String[0]));
-    }
-    if (!set.getExcludes().isEmpty()) {
-      s.setExcludes(set.getExcludes().toArray(new String[0]));
-    }
-    s.scan();
-    String[] filenames = s.getIncludedFiles();
+
+    FileSetManager manager = new FileSetManager();
+    String[] filenames = manager.getIncludedFiles(set);
     Arrays.sort(filenames, String.CASE_INSENSITIVE_ORDER);
     return filenames;
   }
