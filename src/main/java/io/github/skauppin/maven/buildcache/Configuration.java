@@ -11,25 +11,31 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 public class Configuration {
 
-  private static Integer DEFAULT_PROJECT_CACHE_MAX_SIZE_MB = null;
-  private static Integer DEFAULT_PROJECT_CACHE_MAX_ENTRIES = 20;
-  private static Duration DEFAULT_PROJECT_CACHE_MAX_AGE = Duration.ofDays(90);
-  private static Integer DEFAULT_TOTAL_CACHE_MAX_SIZE_MB = null;
+  private static final String SCHEMA_PROJECT_CONFIG = "/buildcache-project.xsd";
+  private static final String SCHEMA_CACHE_CONFIG = "/buildcache-cache.xsd";
 
-  private static final String ROOT_ELEMENT = "buildcache";
+  private static final Integer DEFAULT_PROJECT_CACHE_MAX_SIZE_MB = null;
+  private static final Integer DEFAULT_PROJECT_CACHE_MAX_ENTRIES = 20;
+  private static final Duration DEFAULT_PROJECT_CACHE_MAX_AGE = Duration.ofDays(90);
+  private static final Integer DEFAULT_TOTAL_CACHE_MAX_SIZE_MB = null;
 
   private static final String CONFIGURATION_ELEMENT = "configuration";
   private static final String CACHEDIR_ELEMENT = "cache-directory";
@@ -53,7 +59,7 @@ public class Configuration {
   private static final String TEST_EXECUTION = "test-triggers";
   private static final String INTEGRATION_TEST_EXECUTION = "integration-test-triggers";
 
-  private static final String FILESET_ELEMENT = "fileSet";
+  private static final String FILESET_ELEMENT = "fileset";
   private static final String DIRECTORY_ELEMENT = "directory";
   private static final String INCLUDE_ELEMENT = "include";
   private static final String EXCLUDE_ELEMENT = "exclude";
@@ -68,7 +74,7 @@ public class Configuration {
 
   public void readCacheConfiguration(InputStream inputStream, String defaultCacheDir)
       throws ParserConfigurationException, SAXException, IOException {
-    Element buildCacheElement = parseConfigurationFile(inputStream);
+    Element buildCacheElement = parseConfigurationFile(inputStream, SCHEMA_CACHE_CONFIG);
     Element configurationElement = getFirstChildElement(buildCacheElement, CONFIGURATION_ELEMENT);
     if (configurationElement != null) {
       readCacheProperties(configurationElement);
@@ -80,28 +86,27 @@ public class Configuration {
 
   public void readProjectConfiguration(InputStream inputStream)
       throws ParserConfigurationException, SAXException, IOException {
-    Element buildCacheElement = parseConfigurationFile(inputStream);
+    Element buildCacheElement = parseConfigurationFile(inputStream, SCHEMA_PROJECT_CONFIG);
     Element projectsElement = getFirstChildElement(buildCacheElement, PROJECTS_ELEMENT);
     if (projectsElement != null) {
       readProjects(projectsElement);
     }
   }
 
-  private Element parseConfigurationFile(InputStream inputStream)
+  private Element parseConfigurationFile(InputStream inputStream, String schemaResource)
       throws ParserConfigurationException, SAXException, IOException {
 
+    SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    Schema schema = sf.newSchema(Configuration.class.getResource(schemaResource));
+
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setSchema(schema);
+
     DocumentBuilder db = dbf.newDocumentBuilder();
+    db.setErrorHandler(new XMLErrorHandler());
     Document doc = db.parse(inputStream);
 
-    Element buildCacheElement = doc.getDocumentElement();
-    String rootElementName = buildCacheElement.getNodeName();
-    if (!ROOT_ELEMENT.equals(rootElementName)) {
-      throw new ConfigurationException(
-          String.format("Invalid XML configuration: unknown root element <%s>", rootElementName));
-    }
-    return buildCacheElement;
-
+    return doc.getDocumentElement();
   }
 
   private void readCacheProperties(Element configurationElement) {
@@ -129,11 +134,6 @@ public class Configuration {
     for (int i = 0; i < projects.getLength(); i++) {
       Element projectElement = (Element) projects.item(i);
       String projectId = projectElement.getAttribute(PROJECT_ID);
-      if (projectId.trim().isEmpty()) {
-        throw new ConfigurationException(
-            String.format("Invalid XML configuration: '%s' attribute for <%s> has no value",
-                PROJECT_ID, PROJECT_ELEMENT));
-      }
       handleTriggers(projectElement, MAIN_COMPILE, mapKey(MAIN_COMPILE, projectId));
       handleTriggers(projectElement, TEST_COMPILE, mapKey(TEST_COMPILE, projectId));
       handleTriggers(projectElement, TEST_EXECUTION, mapKey(TEST_EXECUTION, projectId));
@@ -265,6 +265,10 @@ public class Configuration {
     return relativize(getOrEmpty(INTEGRATION_TEST_EXECUTION, project), project);
   }
 
+  int getProjectPathMapSize() {
+    return projectPathMap.size();
+  }
+
   private List<FileSet> relativize(List<FileSet> filesets, MavenProject project) {
     return filesets.stream().map(f -> {
       FileSet set = new FileSet();
@@ -323,5 +327,22 @@ public class Configuration {
     public ConfigurationException(String message) {
       super(message);
     }
+  }
+
+  public static class XMLErrorHandler implements ErrorHandler {
+
+    @Override
+    public void error(SAXParseException e) throws SAXException {
+      throw e;
+    }
+
+    @Override
+    public void fatalError(SAXParseException e) throws SAXException {
+      throw e;
+    }
+
+    @Override
+    public void warning(SAXParseException e) throws SAXException {}
+
   }
 }

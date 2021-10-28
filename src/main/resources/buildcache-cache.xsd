@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+  <xs:element name="buildcache" type="BuildCacheType"></xs:element>
+
+  <xs:complexType name="BuildCacheType">
+    <xs:sequence>
+      <xs:element name="configuration" type="ConfigurationType" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ConfigurationType">
+    <xs:sequence>
+      <xs:element name="cache-directory" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="project-cache-max-size" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="project-cache-max-entries" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="project-cache-max-age" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="total-cache-max-size" type="xs:string" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

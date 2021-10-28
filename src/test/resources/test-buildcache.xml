@@ -2,7 +2,7 @@
   <projects>
     <project id="test-lib1">
       <compile-triggers>
-        <fileSet>
+        <fileset>
           <directory>compile/relative/path</directory>
           <includes>
             <include>compile-include-1/*</include>
@@ -14,8 +14,8 @@
             <exclude> </exclude>
             <exclude/>
           </excludes>
-        </fileSet>
-        <fileSet>
+        </fileset>
+        <fileset>
           <directory>/compile/absolute/path</directory>
           <includes>
             <include>compile-include-4/*</include>
@@ -24,47 +24,49 @@
           <excludes>
             <exclude>compile-exclude-6/*</exclude>
           </excludes>
-        </fileSet>
+        </fileset>
       </compile-triggers>
       <test-compile-triggers>
-        <fileSet>
+        <fileset>
           <directory>test-compile/relative/path</directory>
           <includes>
             <include>test-compile-include-1/*</include>
           </includes>
-        </fileSet>
+        </fileset>
       </test-compile-triggers>
       <test-triggers>
-        <fileSet>
+        <fileset>
           <directory>test/relative/path</directory>
+          <includes></includes>
           <excludes>
             <exclude>test-exclude-1/*</exclude>
           </excludes>
-        </fileSet>
+        </fileset>
       </test-triggers>
       <integration-test-triggers>
-        <fileSet>
+        <fileset>
           <directory>/integration-test/absolute/path</directory>
-          <excludes>
-            <exclude>integration-test-exclude-1/*</exclude>
-          </excludes>
           <includes>
             <include>integration-test-include-1/*</include>
           </includes>
-        </fileSet>
+          <excludes>
+            <exclude>integration-test-exclude-1/*</exclude>
+          </excludes>
+        </fileset>
       </integration-test-triggers>
     </project>
     <project id="com.test:test-lib2">
       <compile-triggers>
-        <fileSet>
+        <fileset>
           <directory>compile/relative/path/lib2</directory>
           <includes>
             <include>compile-include-lib2/*</include>
           </includes>
-        </fileSet>
-        <fileSet>
+          <excludes></excludes>
+        </fileset>
+        <fileset>
           <directory>/compile/absolute/path/lib2</directory>
-        </fileSet>
+        </fileset>
       </compile-triggers>
     </project>
   </projects>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+  <xs:element name="buildcache" type="BuildCacheType"></xs:element>
+
+  <xs:complexType name="BuildCacheType">
+    <xs:sequence>
+      <xs:element name="projects" type="ProjectsType" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ProjectsType">
+    <xs:sequence>
+      <xs:element name="project" type="ProjectType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ProjectType">
+    <xs:sequence>
+      <xs:element name="compile-triggers" type="TriggersType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="test-compile-triggers" type="TriggersType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="test-triggers" type="TriggersType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="integration-test-triggers" type="TriggersType" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attribute name="id" use="required" type="xs:NMTOKEN"/>
+  </xs:complexType>
+
+  <xs:complexType name="TriggersType">
+    <xs:sequence>
+      <xs:element name="fileset" type="FileSetType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="FileSetType">
+    <xs:sequence>
+      <xs:element name="directory" type="xs:string"/>
+      <xs:element name="includes" type="IncludesType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="excludes" type="ExcludesType" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="IncludesType">
+    <xs:sequence>
+      <xs:element name="include" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ExcludesType">
+    <xs:sequence>
+      <xs:element name="exclude" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

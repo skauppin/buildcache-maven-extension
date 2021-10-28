@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
+import org.xml.sax.SAXParseException;
 import io.github.skauppin.maven.buildcache.Configuration.ConfigurationException;
 
 public class ConfigurationTest {
@@ -106,42 +107,66 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void testEmpty() throws Exception {
+    verifySAXParseException("");
+  }
+
+  @Test
   public void testInvalidRootElement() throws Exception {
-    InputStream in = config("<foo></foo>");
-    assertThrows(Configuration.ConfigurationException.class,
-        () -> new Configuration().readProjectConfiguration(in),
-        "Invalid XML configuration: unknown root element <foo>");
+    verifySAXParseException("<foo></foo>");
+  }
+
+  @Test
+  public void testNoProjects1() throws Exception {
+    Configuration config = new Configuration();
+    config.readProjectConfiguration(config("<buildcache></buildcache>"));
+    assertEquals(0, config.getProjectPathMapSize());
+  }
+
+  @Test
+  public void testNoProjects2() throws Exception {
+    Configuration config = new Configuration();
+    config.readProjectConfiguration(config("<buildcache><projects></projects></buildcache>"));
+    assertEquals(0, config.getProjectPathMapSize());
+  }
+
+  @Test
+  public void testProjectWithoutFileSets() throws Exception {
+    Configuration config = new Configuration();
+    //@formatter:off
+    config.readProjectConfiguration(config(
+        "<buildcache><projects><project id=\"a\">"
+            + "<compile-triggers></compile-triggers>"
+        + "</project></projects></buildcache>"));
+    //@formatter:on
+    assertEquals(0, config.getProjectPathMapSize());
   }
 
   @Test
   public void testProjectWithoutId() throws Exception {
-    InputStream in = config("<buildcache><projects><project></project></projects></buildcache>");
-    assertThrows(Configuration.ConfigurationException.class,
-        () -> new Configuration().readProjectConfiguration(in),
-        "Invalid XML configuration: 'id' attribute for <project> has no value");
+    verifySAXParseException("<buildcache><projects><project></project></projects></buildcache>");
   }
 
   @Test
   public void testProjectWithEmptyId() throws Exception {
-    InputStream in =
-        config("<buildcache><projects><project id=\" \"></project></projects></buildcache>");
-    assertThrows(Configuration.ConfigurationException.class,
-        () -> new Configuration().readProjectConfiguration(in),
-        "Invalid XML configuration: 'id' attribute for <project> has no value");
+    verifySAXParseException(
+        "<buildcache><projects><project id=\" \"></project></projects></buildcache>");
   }
 
   @Test
   public void testFileSetWithoutDirectory() throws Exception {
     //@formatter:off
-    InputStream in = config("<buildcache><projects><project id=\"test\">"
+    verifySAXParseException("<buildcache><projects><project id=\"test\">"
         + "<compile-triggers>"
-        + " <fileSet>"
-        + " </fileSet>"
+        + " <fileset>"
+        + " </fileset>"
         + "</compile-triggers></project></projects></buildcache>");
     //@formatter:on
-    assertThrows(Configuration.ConfigurationException.class,
-        () -> new Configuration().readProjectConfiguration(in),
-        "Invalid XML configuration: <fileSet> element does not contain <directory>");
+  }
+
+  private void verifySAXParseException(String configXml) {
+    InputStream in = config(configXml);
+    assertThrows(SAXParseException.class, () -> new Configuration().readProjectConfiguration(in));
   }
 
   @Test
@@ -149,14 +174,14 @@ public class ConfigurationTest {
     //@formatter:off
     InputStream in = config("<buildcache><projects><project id=\"test\">"
         + "<compile-triggers>"
-        + " <fileSet>"
+        + " <fileset>"
         + "  <directory> </directory>"
-        + " </fileSet>"
+        + " </fileset>"
         + "</compile-triggers></project></projects></buildcache>");
     //@formatter:on
-    assertThrows(Configuration.ConfigurationException.class,
-        () -> new Configuration().readProjectConfiguration(in),
-        "Invalid XML configuration: <directory> has empty value");
+    ConfigurationException e = assertThrows(Configuration.ConfigurationException.class,
+        () -> new Configuration().readProjectConfiguration(in));
+    assertEquals("Invalid XML configuration: <directory> has empty value", e.getMessage());
   }
 
   @Test
