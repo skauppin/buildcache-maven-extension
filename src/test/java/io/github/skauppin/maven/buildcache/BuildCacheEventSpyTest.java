@@ -10,10 +10,6 @@ import org.codehaus.plexus.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import io.github.skauppin.maven.buildcache.BuildCache;
-import io.github.skauppin.maven.buildcache.BuildCacheEventSpy;
-import io.github.skauppin.maven.buildcache.ExecutionTimeRegister;
-import io.github.skauppin.maven.buildcache.ProjectBuildStatus;
 
 public class BuildCacheEventSpyTest {
 

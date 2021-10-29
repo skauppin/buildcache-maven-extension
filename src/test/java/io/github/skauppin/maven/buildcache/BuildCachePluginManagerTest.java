@@ -10,11 +10,6 @@ import org.codehaus.plexus.personality.plexus.lifecycle.phase.InitializationExce
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import io.github.skauppin.maven.buildcache.BuildCache;
-import io.github.skauppin.maven.buildcache.BuildCachePluginManager;
-import io.github.skauppin.maven.buildcache.ExecutionTimeRegister;
-import io.github.skauppin.maven.buildcache.MojoExecUtil;
-import io.github.skauppin.maven.buildcache.ProjectBuildStatus;
 
 public class BuildCachePluginManagerTest {
 
@@ -344,7 +339,33 @@ public class BuildCachePluginManagerTest {
   //
 
   @Test
-  public void testBuildCacheDisabled() throws Exception {
+  public void testBuildCacheDisabledFully() throws Exception {
+
+    MojoExecution mojoExecution = Mockito.mock(MojoExecution.class);
+    Mockito.when(buildCache.isBuildCacheDisabled()).thenReturn(true);
+
+    manager.executeMojo(session, mojoExecution);
+
+    Mockito.verify(buildCache, Mockito.times(1)).isInitialized();
+    Mockito.verify(buildCache, Mockito.times(1)).isInitializationError();
+    Mockito.verify(buildCache, Mockito.times(1)).isBuildCacheDisabled();
+    Mockito.verifyNoMoreInteractions(buildCache);
+
+    Mockito.verify(delegate, Mockito.times(1)).executeMojo(session, mojoExecution);
+    Mockito.verify(session, Mockito.times(1)).getCurrentProject();
+    Mockito.verifyNoMoreInteractions(session);
+
+    Mockito.verifyNoInteractions(project);
+    Mockito.verifyNoInteractions(mojoExecution);
+    Mockito.verifyNoInteractions(projectStatus);
+
+    Mockito.verifyNoInteractions(mainCompilePhase);
+    Mockito.verifyNoInteractions(testCompilePhase);
+    Mockito.verifyNoInteractions(testExecutionPhase);
+  }
+
+  @Test
+  public void testBuildCacheDisabledProject() throws Exception {
 
     MojoExecution mojoExecution = Mockito.mock(MojoExecution.class);
 
@@ -356,6 +377,7 @@ public class BuildCachePluginManagerTest {
 
     Mockito.verify(buildCache, Mockito.times(1)).isInitialized();
     Mockito.verify(buildCache, Mockito.times(1)).isInitializationError();
+    Mockito.verify(buildCache, Mockito.times(1)).isBuildCacheDisabled();
     Mockito.verify(buildCache, Mockito.times(1)).getProjectStatus(session, mojoExecution);
     Mockito.verifyNoMoreInteractions(buildCache);
 
@@ -387,6 +409,7 @@ public class BuildCachePluginManagerTest {
 
     Mockito.verify(buildCache, Mockito.times(1)).isInitialized();
     Mockito.verify(buildCache, Mockito.times(1)).isInitializationError();
+    Mockito.verify(buildCache, Mockito.times(1)).isBuildCacheDisabled();
     Mockito.verify(buildCache, Mockito.times(1)).getProjectStatus(session, mojoExecution);
     Mockito.verifyNoMoreInteractions(buildCache);
     Mockito.verify(projectStatus, Mockito.times(1)).isBuildCacheDisabled();
@@ -411,6 +434,7 @@ public class BuildCachePluginManagerTest {
 
     Mockito.verify(buildCache, Mockito.times(1)).isInitialized();
     Mockito.verify(buildCache, Mockito.times(1)).isInitializationError();
+    Mockito.verify(buildCache, Mockito.times(1)).isBuildCacheDisabled();
     Mockito.verify(buildCache, Mockito.times(1)).getProjectStatus(session, mojoExecution);
     Mockito.verify(projectStatus, Mockito.times(1)).isBuildCacheDisabled();
     Mockito.verify(projectStatus, Mockito.times(1)).isMavenMainSkip();

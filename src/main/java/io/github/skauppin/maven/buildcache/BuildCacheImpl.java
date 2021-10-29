@@ -73,6 +73,7 @@ public class BuildCacheImpl implements BuildCache, Initializable {
   private boolean error = false;
   private String errorMessage = null;
 
+  private boolean buildCacheDisabled = false;
   private boolean buildCacheDebug = false;
   private boolean buildCacheIgnore = false;
   private boolean buildCacheProfile = false;
@@ -133,6 +134,8 @@ public class BuildCacheImpl implements BuildCache, Initializable {
         userHome = evaluate(expressionEvaluator, USER_HOME);
         mavenHome = evaluate(expressionEvaluator, MAVEN_HOME);
         fullCacheClean = checkProperty(expressionEvaluator, BUILD_CACHE_FULL_CLEAN);
+
+        buildCacheDisabled = checkProperty(expressionEvaluator, BUILD_CACHE_DISABLE);
         buildCacheDebug = checkProperty(expressionEvaluator, BUILD_CACHE_DEBUG);
         buildCacheIgnore = checkProperty(expressionEvaluator, BUILD_CACHE_IGNORE);
         buildCacheProfile = checkProperty(expressionEvaluator, BUILD_CACHE_PROFILE);
@@ -180,12 +183,18 @@ public class BuildCacheImpl implements BuildCache, Initializable {
       }
 
       this.initialized = true;
+      logger.info(String.format("buildcache: %s", buildCacheDisabled ? "disabled" : "enabled"));
 
     } catch (InitializationError e) {
       error = true;
       errorMessage = String.format("buildcache initialization failed: %s", e.getMessage());
       logger.error(e.getMessage(), e.getCause());
     }
+  }
+
+  @Override
+  public boolean isBuildCacheDisabled() {
+    return buildCacheDisabled;
   }
 
   @Override

@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.apache.maven.plugin.MojoExecution;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import io.github.skauppin.maven.buildcache.MojoExecUtil;
 
 public class MojoExecUtilTest {
 

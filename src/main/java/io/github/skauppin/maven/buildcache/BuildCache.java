@@ -14,6 +14,8 @@ public interface BuildCache {
 
   boolean isInitialized();
 
+  boolean isBuildCacheDisabled();
+
   boolean isBuildCacheDebug();
 
   boolean isBuildCacheProfile();

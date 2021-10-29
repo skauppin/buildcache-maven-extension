@@ -91,11 +91,14 @@ public class BuildCacheImplTest {
         .thenReturn("true");
     Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.BUILD_CACHE_PROFILE + "}"))
         .thenReturn("true");
+    Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.BUILD_CACHE_DISABLE + "}"))
+        .thenReturn("true");
 
     buildCache.initializeSession(session);
 
     assertTrue(buildCache.isInitialized());
     assertFalse(buildCache.isInitializationError());
+    assertTrue(buildCache.isBuildCacheDisabled());
     assertNull(buildCache.getInitializationErrorMessage());
     assertTrue(buildCache.isBuildCacheDebug());
     assertTrue(buildCache.isBuildCacheProfile());

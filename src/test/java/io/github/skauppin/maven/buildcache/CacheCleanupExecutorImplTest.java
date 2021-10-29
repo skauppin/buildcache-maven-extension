@@ -14,9 +14,6 @@ import org.codehaus.plexus.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import io.github.skauppin.maven.buildcache.CacheCleanupExecutorImpl;
-import io.github.skauppin.maven.buildcache.Configuration;
-import io.github.skauppin.maven.buildcache.FileUtil;
 
 public class CacheCleanupExecutorImplTest {
 

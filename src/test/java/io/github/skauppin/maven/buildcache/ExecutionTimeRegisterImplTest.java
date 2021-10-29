@@ -11,7 +11,6 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.Logger;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import io.github.skauppin.maven.buildcache.ExecutionTimeRegisterImpl;
 import io.github.skauppin.maven.buildcache.ExecutionTimeRegisterImpl.MojoExecutionTime;
 import io.github.skauppin.maven.buildcache.ExecutionTimeRegisterImpl.ProjectExecution;
 

@@ -67,8 +67,12 @@ public class BuildCachePluginManager extends DefaultBuildPluginManager implement
 
     if (!buildCache.isInitialized()) {
       throw new MojoExecutionException(
-          "buildcache has not been initialized. Are you sure buildcache extension is"
+          "buildcache has not been initialized. Make sure buildcache extension is"
               + " defined in .mvn/extensions.xml");
+    }
+
+    if (buildCache.isBuildCacheDisabled()) {
+      return true;
     }
 
     ProjectBuildStatus projectStatus = buildCache.getProjectStatus(session, mojoExecution);
