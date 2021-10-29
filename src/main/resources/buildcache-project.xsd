@@ -34,6 +34,8 @@
   <xs:complexType name="FileSetType">
     <xs:sequence>
       <xs:element name="directory" type="xs:string"/>
+      <xs:element name="follow-symlinks" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="use-default-excludes" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="includes" type="IncludesType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="excludes" type="ExcludesType" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>

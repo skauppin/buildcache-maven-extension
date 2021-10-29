@@ -102,6 +102,8 @@ public class FileUtil {
     FileSet copy = copyFileSet(set1);
     copy.getIncludes().addAll(set2.getIncludes());
     copy.getExcludes().addAll(set2.getExcludes());
+    copy.setFollowSymlinks(set2.isFollowSymlinks());
+    copy.setUseDefaultExcludes(set2.isUseDefaultExcludes());
     return copy;
   }
 
@@ -110,6 +112,8 @@ public class FileUtil {
     copy.setDirectory(set.getDirectory());
     copy.getIncludes().addAll(set.getIncludes());
     copy.getExcludes().addAll(set.getExcludes());
+    copy.setFollowSymlinks(set.isFollowSymlinks());
+    copy.setUseDefaultExcludes(set.isUseDefaultExcludes());
     return copy;
   }
 

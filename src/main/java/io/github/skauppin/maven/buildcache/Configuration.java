@@ -61,6 +61,8 @@ public class Configuration {
 
   private static final String FILESET_ELEMENT = "fileset";
   private static final String DIRECTORY_ELEMENT = "directory";
+  private static final String SYMLINKS_ELEMENT = "follow-symlinks";
+  private static final String DEFAULT_EXCLUDES_ELEMENT = "use-default-excludes";
   private static final String INCLUDE_ELEMENT = "include";
   private static final String EXCLUDE_ELEMENT = "exclude";
 
@@ -156,21 +158,22 @@ public class Configuration {
     NodeList filesets = triggerElement.getElementsByTagName(FILESET_ELEMENT);
     for (int i = 0; i < filesets.getLength(); i++) {
       Element filesetElement = (Element) filesets.item(i);
-      Element directoryElement = getFirstChildElement(filesetElement, DIRECTORY_ELEMENT);
-      if (directoryElement == null) {
-        throw new ConfigurationException(
-            String.format("Invalid XML configuration: <%s> element does not contain <%s>",
-                FILESET_ELEMENT, DIRECTORY_ELEMENT));
-      }
-      String directory = getTextContent(directoryElement);
+      String directory = getChildTextContent(filesetElement, DIRECTORY_ELEMENT);
       if (directory == null) {
         throw new ConfigurationException(
             String.format("Invalid XML configuration: <%s> has empty value", DIRECTORY_ELEMENT));
       }
+      boolean followSymlinks =
+          "true".equalsIgnoreCase(getChildTextContent(filesetElement, SYMLINKS_ELEMENT));
+      boolean useDefaultExcludes =
+          !"false".equalsIgnoreCase(getChildTextContent(filesetElement, DEFAULT_EXCLUDES_ELEMENT));
       List<String> includes = getPaths(filesetElement, INCLUDE_ELEMENT);
       List<String> excludes = getPaths(filesetElement, EXCLUDE_ELEMENT);
+
       FileSet fileSet = new FileSet();
       fileSet.setDirectory(directory);
+      fileSet.setFollowSymlinks(followSymlinks);
+      fileSet.setUseDefaultExcludes(useDefaultExcludes);
       fileSet.setIncludes(includes);
       fileSet.setExcludes(excludes);
 
@@ -273,6 +276,8 @@ public class Configuration {
     return filesets.stream().map(f -> {
       FileSet set = new FileSet();
       set.setDirectory(project.getBasedir().toPath().resolve(f.getDirectory()).toString());
+      set.setFollowSymlinks(f.isFollowSymlinks());
+      set.setUseDefaultExcludes(f.isUseDefaultExcludes());
       set.setIncludes(f.getIncludes());
       set.setExcludes(f.getExcludes());
       return set;

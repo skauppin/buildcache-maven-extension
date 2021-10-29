@@ -40,11 +40,15 @@ public class ConfigurationTest {
     verifyFileSet(compileSet1Lib1, "/base/test-lib1/compile/relative/path",
         Arrays.asList("compile-include-1/*", "compile-include-2/*"),
         Arrays.asList("compile-exclude-3/*"));
+    assertEquals(false, compileSet1Lib1.isFollowSymlinks());
+    assertEquals(true, compileSet1Lib1.isUseDefaultExcludes());
 
     FileSet compileSet2Lib1 = compileFileSetsLib1.get(1);
     verifyFileSet(compileSet2Lib1, "/compile/absolute/path",
         Arrays.asList("compile-include-4/*", "compile-include-5/*"),
         Arrays.asList("compile-exclude-6/*"));
+    assertEquals(true, compileSet2Lib1.isFollowSymlinks());
+    assertEquals(false, compileSet2Lib1.isUseDefaultExcludes());
 
     List<FileSet> testCompileFileSetsLib1 = config.getTestCompileTriggers(projectTestLib1);
     assertEquals(1, testCompileFileSetsLib1.size());

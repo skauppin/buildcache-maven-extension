@@ -112,6 +112,8 @@ public class FileUtilTest {
     set.setDirectory("/root");
     set.addInclude("include");
     set.addExclude("exclude");
+    set.setFollowSymlinks(true);
+    set.setUseDefaultExcludes(false);
 
     FileSet copy = fileUtil.copyFileSet(set);
     assertFalse(set == copy);
@@ -120,6 +122,8 @@ public class FileUtilTest {
     assertEquals(set.getDirectory(), copy.getDirectory());
     assertEquals(set.getIncludes(), copy.getIncludes());
     assertEquals(set.getExcludes(), copy.getExcludes());
+    assertTrue(copy.isFollowSymlinks());
+    assertFalse(copy.isUseDefaultExcludes());
   }
 
   @Test

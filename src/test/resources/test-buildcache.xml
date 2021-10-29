@@ -17,6 +17,8 @@
         </fileset>
         <fileset>
           <directory>/compile/absolute/path</directory>
+          <follow-symlinks>true</follow-symlinks>
+          <use-default-excludes>false</use-default-excludes>
           <includes>
             <include>compile-include-4/*</include>
             <include>compile-include-5/* </include>
