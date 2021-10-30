@@ -37,7 +37,6 @@ public class FileUtil {
     List<FileSet> sourceRootFileSets = uniqueSourceRoots.stream().map(r -> {
       FileSet set = new FileSet();
       set.setDirectory(r);
-      set.addInclude("**");
       return set;
     }).collect(Collectors.toList());
 

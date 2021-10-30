@@ -69,7 +69,7 @@ public class FileUtilTest {
 
     FileSet mergedSet = sourceRootFileSets.get(0);
     assertEquals("/root/source", mergedSet.getDirectory());
-    assertEquals(Arrays.asList("**", "include"), mergedSet.getIncludes());
+    assertEquals(Arrays.asList("include"), mergedSet.getIncludes());
     assertEquals(Arrays.asList("exclude"), mergedSet.getExcludes());
   }
 
@@ -97,7 +97,7 @@ public class FileUtilTest {
 
     FileSet mergedSet1 = sourceRootFileSets.get(0);
     assertEquals("/root/source", mergedSet1.getDirectory());
-    assertEquals(Arrays.asList("**"), mergedSet1.getIncludes());
+    assertEquals(Collections.emptyList(), mergedSet1.getIncludes());
     assertEquals(0, mergedSet1.getExcludes().size());
 
     FileSet mergedSet2 = additionalFileSets.get(0);
