@@ -11,10 +11,10 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.Logger;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import io.github.skauppin.maven.buildcache.ExecutionTimeRegisterImpl.MojoExecutionTime;
-import io.github.skauppin.maven.buildcache.ExecutionTimeRegisterImpl.ProjectExecution;
+import io.github.skauppin.maven.buildcache.ExecutionTimeRegister.MojoExecutionTime;
+import io.github.skauppin.maven.buildcache.ExecutionTimeRegister.ProjectExecution;
 
-public class ExecutionTimeRegisterImplTest {
+public class ExecutionTimeRegisterTest {
 
   @Test
   public void testTimeRegister() {
@@ -39,7 +39,7 @@ public class ExecutionTimeRegisterImplTest {
 
     Logger logger = Mockito.mock(Logger.class);
 
-    ExecutionTimeRegisterImpl register = new ExecutionTimeRegisterImpl();
+    ExecutionTimeRegister register = new ExecutionTimeRegister();
     register.setLogger(logger);
 
     register.record(project, mojoMainCompile, 10, true);
