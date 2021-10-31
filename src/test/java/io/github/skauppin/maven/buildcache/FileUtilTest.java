@@ -15,8 +15,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.shared.model.fileset.FileSet;
+import org.codehaus.plexus.logging.Logger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import com.google.common.collect.ImmutableList;
 
 public class FileUtilTest {
@@ -36,7 +38,7 @@ public class FileUtilTest {
 
   private static List<String> ALL_FILES = new ArrayList<>();
 
-  private FileUtil fileUtil = new FileUtil();
+  private static FileUtil fileUtil = new FileUtil();
 
   @BeforeAll
   public static void init() throws IOException {
@@ -49,6 +51,8 @@ public class FileUtilTest {
 
     ALL_FILES.addAll(CLASS_FILES);
     ALL_FILES.addAll(TEXT_FILES);
+
+    fileUtil.setLogger(Mockito.mock(Logger.class));
   }
 
   @Test

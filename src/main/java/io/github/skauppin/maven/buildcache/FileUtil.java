@@ -23,9 +23,16 @@ import org.apache.commons.io.IOUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
+import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.plexus.component.annotations.Requirement;
+import org.codehaus.plexus.logging.Logger;
 import com.google.common.io.Files;
 
+@Component(role = FileUtil.class)
 public class FileUtil {
+
+  @Requirement
+  private Logger logger;
 
   public FileUtil() {}
 
@@ -204,4 +211,9 @@ public class FileUtil {
   public File[] listFiles(File directory) {
     return directory.listFiles();
   }
+
+  void setLogger(Logger logger) {
+    this.logger = logger;
+  }
+
 }

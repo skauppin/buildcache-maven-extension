@@ -19,48 +19,53 @@ import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
+import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
 
+@Component(role = HashUtil.class)
 public class HashUtil {
 
-  private FileUtil fileUtil = new FileUtil();
+  @Requirement
+  private FileUtil fileUtil;
 
+  @Requirement
   private Logger logger;
 
   public HashUtil() {}
 
-  public void setProjectCompilePhaseDetails(ProjectBuildStatus projectStatus, BuildCache buildCache,
-      MavenProject project, List<FileSet> configuredFileSets, Map<String, String> properties)
-      throws IOException {
+  public boolean setProjectCompilePhaseDetails(ProjectBuildStatus projectStatus,
+      BuildCache buildCache, MavenProject project, List<FileSet> configuredFileSets,
+      Map<String, String> properties) throws IOException {
 
-    setProjectCompilePhaseDetails(projectStatus.getMainCompile(), buildCache,
+    return setProjectCompilePhaseDetails(projectStatus.getMainCompile(), buildCache,
         projectStatus.getMavenExecutionPlan(), project.getCompileSourceRoots(), configuredFileSets,
         properties, project.getArtifacts(), MojoExecUtil::isCompileRelatedPhase);
   }
 
-  public void setProjectTestCompilePhaseDetails(ProjectBuildStatus projectStatus,
+  public boolean setProjectTestCompilePhaseDetails(ProjectBuildStatus projectStatus,
       BuildCache buildCache, MavenProject project, List<FileSet> configuredFileSets,
       Map<String, String> properties) throws IOException {
 
-    setProjectCompilePhaseDetails(projectStatus.getTestCompile(), buildCache,
+    return setProjectCompilePhaseDetails(projectStatus.getTestCompile(), buildCache,
         projectStatus.getMavenExecutionPlan(), project.getTestCompileSourceRoots(),
         configuredFileSets, properties, project.getArtifacts(),
         MojoExecUtil::isTestCompileRelatedPhase);
   }
 
-  public void setProjectTestPhaseDetails(ProjectBuildStatus projectStatus, MavenProject project,
+  public boolean setProjectTestPhaseDetails(ProjectBuildStatus projectStatus, MavenProject project,
       List<FileSet> configuredFileSets) throws IOException {
-    setProjectTestPhaseDetails(projectStatus.getTest(), projectStatus, project, configuredFileSets,
-        MojoExecUtil::isTestRelatedPhase);
+    return setProjectTestPhaseDetails(projectStatus.getTest(), projectStatus, project,
+        configuredFileSets, MojoExecUtil::isTestRelatedPhase);
   }
 
-  public void setProjectIntegrationTestPhaseDetails(ProjectBuildStatus projectStatus,
+  public boolean setProjectIntegrationTestPhaseDetails(ProjectBuildStatus projectStatus,
       MavenProject project, List<FileSet> configuredFileSets) throws IOException {
-    setProjectTestPhaseDetails(projectStatus.getIntegrationTest(), projectStatus, project,
+    return setProjectTestPhaseDetails(projectStatus.getIntegrationTest(), projectStatus, project,
         configuredFileSets, MojoExecUtil::isIntegrationTestRelatedPhase);
   }
 
-  private void setProjectTestPhaseDetails(ProjectBuildStatus.Phase currentProjectStatusPhase,
+  private boolean setProjectTestPhaseDetails(ProjectBuildStatus.Phase currentProjectStatusPhase,
       ProjectBuildStatus projectStatus, MavenProject project, List<FileSet> configuredFileSets,
       Predicate<MojoExecution> filter) throws IOException {
 
@@ -105,9 +110,11 @@ public class HashUtil {
     String phaseDetails = phaseDetailsBuffer.toString();
     currentProjectStatusPhase.setPhaseDetails(phaseDetails);
     currentProjectStatusPhase.setPhaseHash(hash(phaseDetails));
+
+    return true;
   }
 
-  private void setProjectCompilePhaseDetails(ProjectBuildStatus.Phase currentProjectStatusPhase,
+  private boolean setProjectCompilePhaseDetails(ProjectBuildStatus.Phase currentProjectStatusPhase,
       BuildCache buildCache, MavenExecutionPlan mavenExecutionPlan, List<String> sourceRoots,
       List<FileSet> configuredFileSets, Map<String, String> properties, Set<Artifact> dependencies,
       Predicate<MojoExecution> filter) throws IOException {
@@ -144,6 +151,8 @@ public class HashUtil {
     String phaseDetails = phaseDetailsBuffer.toString();
     currentProjectStatusPhase.setPhaseDetails(phaseDetails);
     currentProjectStatusPhase.setPhaseHash(hash(phaseDetails));
+
+    return true;
   }
 
   String getPhasePluginExecutionDetails(MavenExecutionPlan mavenExecutionPlan,
@@ -237,5 +246,9 @@ public class HashUtil {
 
   void setLogger(Logger logger) {
     this.logger = logger;
+  }
+
+  void setFileUtil(FileUtil fileUtil) {
+    this.fileUtil = fileUtil;
   }
 }

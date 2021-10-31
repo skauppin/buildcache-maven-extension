@@ -21,10 +21,9 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.logging.Logger;
-import org.codehaus.plexus.personality.plexus.lifecycle.phase.Initializable;
 
 @Component(role = BuildCache.class)
-public class BuildCacheImpl implements BuildCache, Initializable {
+public class BuildCacheImpl implements BuildCache {
 
   public static String getProjectId(MavenProject project) {
     return String.format("%s:%s", project.getGroupId(), project.getArtifactId());
@@ -67,7 +66,11 @@ public class BuildCacheImpl implements BuildCache, Initializable {
   @Requirement
   private CacheCleanupExecutor cacheCleanupExecutor;
 
-  private HashUtil hashUtil = new HashUtil();
+  @Requirement
+  private FileUtil fileUtil;
+
+  @Requirement
+  private HashUtil hashUtil;
 
   private boolean initialized = false;
   private boolean error = false;
@@ -88,8 +91,6 @@ public class BuildCacheImpl implements BuildCache, Initializable {
   private Function<MavenSession, PluginParameterExpressionEvaluator> expressionEvaluatorProvider =
       s -> new PluginParameterExpressionEvaluator(s, new MojoExecution(null));
 
-  private FileUtil fileUtil = new FileUtil();
-
   @Override
   public boolean isInitializationError() {
     return error;
@@ -103,11 +104,6 @@ public class BuildCacheImpl implements BuildCache, Initializable {
   @Override
   public boolean isInitialized() {
     return initialized;
-  }
-
-  @Override
-  public void initialize() {
-    hashUtil.setLogger(logger);
   }
 
   @Override
@@ -540,6 +536,10 @@ public class BuildCacheImpl implements BuildCache, Initializable {
     this.fileUtil = fileUtil;
   }
 
+  void setHashUtil(HashUtil hashUtil) {
+    this.hashUtil = hashUtil;
+  }
+
   void setConfiguration(Configuration configuration) {
     this.configuration = configuration;
   }
@@ -550,6 +550,10 @@ public class BuildCacheImpl implements BuildCache, Initializable {
 
   void setBuildCacheIgnore(boolean buildCacheIgnore) {
     this.buildCacheIgnore = buildCacheIgnore;
+  }
+
+  Map<String, String> getCompilePhaseProperties() {
+    return this.compilePhaseProperties;
   }
 
   static boolean nonEmptyPropertyValue(PluginParameterExpressionEvaluator expressionEvaluator,

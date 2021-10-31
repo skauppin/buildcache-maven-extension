@@ -10,23 +10,17 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import javax.xml.parsers.ParserConfigurationException;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.lifecycle.LifecycleExecutor;
 import org.apache.maven.lifecycle.LifecycleNotFoundException;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.model.Build;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.PluginParameterExpressionEvaluator;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.model.fileset.FileSet;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +37,7 @@ public class BuildCacheImplTest {
   private PluginParameterExpressionEvaluator evaluator;
   private LifecycleExecutor lifecycleExecutor;
   private FileUtil fileUtil;
+  private HashUtil hashUtil;
   private Configuration configuration;
   private CacheCleanupExecutorImpl fullCacheCleanupExecutor;
   private BuildCacheImpl buildCache;
@@ -51,11 +46,13 @@ public class BuildCacheImplTest {
 
   @BeforeEach
   public void init() throws Exception {
+
     project = Mockito.mock(MavenProject.class);
     session = Mockito.mock(MavenSession.class);
     evaluator = Mockito.mock(PluginParameterExpressionEvaluator.class);
     lifecycleExecutor = Mockito.mock(LifecycleExecutor.class);
     fileUtil = Mockito.mock(FileUtil.class);
+    hashUtil = Mockito.mock(HashUtil.class);
     configuration = Mockito.mock(Configuration.class);
     fullCacheCleanupExecutor = Mockito.mock(CacheCleanupExecutorImpl.class);
 
@@ -77,6 +74,7 @@ public class BuildCacheImplTest {
     buildCache.setLogger(Mockito.mock(Logger.class));
     buildCache.setLifecycleExecutor(lifecycleExecutor);
     buildCache.setFileUtil(fileUtil);
+    buildCache.setHashUtil(hashUtil);
     buildCache.setConfiguration(configuration);
     buildCache.setCacheCleanupExecutor(fullCacheCleanupExecutor);
   }
@@ -93,6 +91,10 @@ public class BuildCacheImplTest {
         .thenReturn("true");
     Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.BUILD_CACHE_DISABLE + "}"))
         .thenReturn("true");
+    Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.MAVEN_COMPILER_SOURCE + "}"))
+        .thenReturn("1.8");
+    Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.MAVEN_COMPILER_TARGET + "}"))
+        .thenReturn("1.6");
 
     buildCache.initializeSession(session);
 
@@ -102,6 +104,10 @@ public class BuildCacheImplTest {
     assertNull(buildCache.getInitializationErrorMessage());
     assertTrue(buildCache.isBuildCacheDebug());
     assertTrue(buildCache.isBuildCacheProfile());
+    assertEquals("1.8",
+        buildCache.getCompilePhaseProperties().get(BuildCacheImpl.MAVEN_COMPILER_SOURCE));
+    assertEquals("1.6",
+        buildCache.getCompilePhaseProperties().get(BuildCacheImpl.MAVEN_COMPILER_TARGET));
     Mockito.verify(configuration).setCachingDefaults(Mockito.eq("/home/user/.m2/buildcache"));
     Mockito.verifyNoMoreInteractions(configuration);
     Mockito.verify(fullCacheCleanupExecutor).initialize(Mockito.any());
@@ -216,40 +222,33 @@ public class BuildCacheImplTest {
     assertEquals(mockMavenExecutionPlan, projectStatus.getMavenExecutionPlan());
   }
 
+  @Test
+  public void testGetProjectStatusWhenException() throws Exception {
+
+    Mockito.when(lifecycleExecutor.calculateExecutionPlan(session, "verify"))
+        .thenThrow(LifecycleNotFoundException.class);
+
+    ProjectBuildStatus projectStatus = buildCache.getProjectStatus(session);
+    assertFalse(projectStatus.isBuildCacheEnabled());
+  }
+
   //
   // compile
   //
 
   @Test
-  public void testGetProjectStatusInCompilePhaseWithoutConfiguration() throws Exception {
-    testGetProjectStatusInCompilePhase("c13839d00f91bb51d8897b185e8ee2d5");
-  }
-
-  @Test
-  public void testGetProjectStatusInCompilePhaseWithConfiguration() throws Exception {
-    String fileSetDirectory = FileUtilTest.class.getResource("/").getFile();
-    FileSet set = new FileSet();
-    set.setDirectory(fileSetDirectory);
-    set.addInclude("trigger.txt");
-    Mockito.when(configuration.getMainCompileTriggers(project))
-        .thenReturn(Collections.singletonList(set));
-
-    testGetProjectStatusInCompilePhase("72f2c4ffee2c5247f466bfdd5d174d5f");
-  }
-
-  private void testGetProjectStatusInCompilePhase(String expectedHash) throws Exception {
-    Set<Artifact> dependencies = HashUtilTest.mockDependencies();
-    Mockito.when(project.getArtifacts()).thenReturn(dependencies);
-    List<String> compileSourceRoots = Collections.singletonList(
-        Paths.get(FileUtilTest.class.getResource("/test-files").getFile()).toString());
-    Mockito.when(project.getCompileSourceRoots()).thenReturn(compileSourceRoots);
-
+  public void testGetProjectStatusInCompilePhase() throws Exception {
     MojoExecution mojoExecution = HashUtilTest.mockMojoExecution("compile");
+    Mockito.when(hashUtil.setProjectCompilePhaseDetails(Mockito.any(), Mockito.any(),
+        Mockito.eq(project), Mockito.any(), Mockito.any())).then(a -> {
+          a.getArgument(0, ProjectBuildStatus.class).getMainCompile().setPhaseHash("x");
+          return true;
+        });
 
     ProjectBuildStatus projectStatus = buildCache.getProjectStatus(session, mojoExecution);
     assertTrue(projectStatus.isBuildCacheEnabled());
     assertTrue(projectStatus.getMainCompile().isConfigured());
-    assertEquals(expectedHash, projectStatus.getMainCompile().getPhaseHash());
+    assertEquals("x", projectStatus.getMainCompile().getPhaseHash());
   }
 
   @Test
@@ -264,18 +263,14 @@ public class BuildCacheImplTest {
     MojoExecution mojoCompile = HashUtilTest.mockMojoExecution("compile");
     projectStatus = buildCache.getProjectStatus(session, mojoCompile);
     assertTrue(projectStatus.isBuildCacheEnabled());
-    assertNull(projectStatus.getMainCompile().getPhaseDetails());
-    assertNull(projectStatus.getMainCompile().getPhaseHash());
+    Mockito.verifyNoInteractions(hashUtil);
   }
 
   @Test
-  public void testGetProjectStatusInCompilePhaseException() throws Exception {
-
-    Mockito.when(lifecycleExecutor.calculateExecutionPlan(session, "verify"))
-        .thenThrow(LifecycleNotFoundException.class);
-
-    MojoExecution mojoExecution =
-        HashUtilTest.mockMojoExecution("compile", "com.test", "test", "v1.0.0", null);
+  public void testGetProjectStatusWhenConfigureException() throws Exception {
+    MojoExecution mojoExecution = HashUtilTest.mockMojoExecution("compile");
+    Mockito.when(hashUtil.setProjectCompilePhaseDetails(Mockito.any(), Mockito.any(),
+        Mockito.eq(project), Mockito.any(), Mockito.any())).thenThrow(RuntimeException.class);
 
     ProjectBuildStatus projectStatus = buildCache.getProjectStatus(session, mojoExecution);
     assertFalse(projectStatus.isBuildCacheEnabled());
@@ -292,18 +287,18 @@ public class BuildCacheImplTest {
     MojoExecution mojoExecution = HashUtilTest.mockMojoExecution("initialize");
     ProjectBuildStatus projectStatus = buildCache.getProjectStatus(session, mojoExecution);
 
-    Set<Artifact> dependencies = HashUtilTest.mockDependencies();
-    Mockito.when(project.getArtifacts()).thenReturn(dependencies);
-    List<String> compileSourceRoots = Collections.singletonList(
-        Paths.get(FileUtilTest.class.getResource("/test-files").getFile()).toString());
-    Mockito.when(project.getTestCompileSourceRoots()).thenReturn(compileSourceRoots);
+    Mockito.when(hashUtil.setProjectTestCompilePhaseDetails(Mockito.any(), Mockito.any(),
+        Mockito.eq(project), Mockito.any(), Mockito.any())).then(a -> {
+          a.getArgument(0, ProjectBuildStatus.class).getTestCompile().setPhaseHash("x");
+          return true;
+        });
 
     mojoExecution = HashUtilTest.mockMojoExecution("test-compile");
     projectStatus = buildCache.getProjectStatus(session, mojoExecution);
 
     assertTrue(projectStatus.isBuildCacheEnabled());
     assertTrue(projectStatus.getTestCompile().isConfigured());
-    assertEquals("4d4e13db154c8c55823f9af7afc9a91f", projectStatus.getTestCompile().getPhaseHash());
+    assertEquals("x", projectStatus.getTestCompile().getPhaseHash());
   }
 
   @Test
@@ -318,24 +313,7 @@ public class BuildCacheImplTest {
     MojoExecution mojoCompile = HashUtilTest.mockMojoExecution("test-compile");
     projectStatus = buildCache.getProjectStatus(session, mojoCompile);
     assertTrue(projectStatus.isBuildCacheEnabled());
-    assertNull(projectStatus.getTestCompile().getPhaseDetails());
-    assertNull(projectStatus.getTestCompile().getPhaseHash());
-  }
-
-  @Test
-  public void testGetProjectStatusInTestCompilePhaseException() throws Exception {
-
-    MojoExecution mojoExecution = HashUtilTest.mockMojoExecution("initialize");
-    ProjectBuildStatus projectStatus = buildCache.getProjectStatus(session, mojoExecution);
-    projectStatus.setMavenExecutionPlan(Mockito.mock(MavenExecutionPlan.class));
-
-    Mockito.when(project.getTestCompileSourceRoots()).thenThrow(RuntimeException.class);
-    mojoExecution = HashUtilTest.mockMojoExecution("test-compile");
-    projectStatus = buildCache.getProjectStatus(session, mojoExecution);
-
-    assertFalse(projectStatus.isBuildCacheEnabled());
-    assertFalse(projectStatus.getTestCompile().isConfigured());
-    Mockito.verify(project, Mockito.times(1)).getTestCompileSourceRoots();
+    Mockito.verifyNoInteractions(hashUtil);
   }
 
   //
@@ -344,41 +322,39 @@ public class BuildCacheImplTest {
 
   @Test
   public void testGetProjectStatusInTestPhase() throws Exception {
-    testGetProjectStatusInTestPhase("test", s -> s.getTest(), "3f4dd7243c25a3ffd8a1a7fb2a81f5cd");
+    Mockito
+        .when(
+            hashUtil.setProjectTestPhaseDetails(Mockito.any(), Mockito.eq(project), Mockito.any()))
+        .then(a -> {
+          a.getArgument(0, ProjectBuildStatus.class).getTest().setPhaseHash("x");
+          return true;
+        });
+    testGetProjectStatusInTestPhase("test", s -> s.getTest());
   }
 
   @Test
   public void testGetProjectStatusInIntegrationTestPhase() throws Exception {
-    testGetProjectStatusInTestPhase("integration-test", s -> s.getIntegrationTest(),
-        "c6e605c9af4e07a45bb38568c1dcdf0e");
+    Mockito.when(hashUtil.setProjectIntegrationTestPhaseDetails(Mockito.any(), Mockito.eq(project),
+        Mockito.any())).then(a -> {
+          a.getArgument(0, ProjectBuildStatus.class).getIntegrationTest().setPhaseHash("x");
+          return true;
+        });
+    testGetProjectStatusInTestPhase("integration-test", s -> s.getIntegrationTest());
   }
 
   private void testGetProjectStatusInTestPhase(String lifecyclePhase,
-      Function<ProjectBuildStatus, ProjectBuildStatus.Phase> expectedConfiguredPhaseProvider,
-      String expectedPhaseHash) throws Exception {
+      Function<ProjectBuildStatus, ProjectBuildStatus.Phase> expectedConfiguredPhaseProvider)
+      throws Exception {
 
     MojoExecution mojoExecution = HashUtilTest.mockMojoExecution("initialize");
     ProjectBuildStatus projectStatus = buildCache.getProjectStatus(session, mojoExecution);
-    projectStatus.getMainCompile().setPhaseHash("xyz-111");
-    projectStatus.getTestCompile().setPhaseHash("abcd-1234");
-
-    String resourceRoot =
-        Paths.get(FileUtilTest.class.getResource("/test-files").getFile()).toString();
-    Resource mainResource = Mockito.mock(Resource.class);
-    Mockito.when(mainResource.getDirectory()).thenReturn(resourceRoot);
-    Mockito.when(mainResource.getIncludes()).thenReturn(Collections.emptyList());
-    Mockito.when(mainResource.getExcludes()).thenReturn(Collections.emptyList());
-
-    Mockito.when(project.getResources()).thenReturn(Collections.singletonList(mainResource));
-    Mockito.when(project.getTestResources()).thenReturn(Collections.singletonList(mainResource));
 
     mojoExecution = HashUtilTest.mockMojoExecution(lifecyclePhase);
     projectStatus = buildCache.getProjectStatus(session, mojoExecution);
 
     assertTrue(projectStatus.isBuildCacheEnabled());
     assertTrue(expectedConfiguredPhaseProvider.apply(projectStatus).isConfigured());
-    assertEquals(expectedPhaseHash,
-        expectedConfiguredPhaseProvider.apply(projectStatus).getPhaseHash());
+    assertEquals("x", expectedConfiguredPhaseProvider.apply(projectStatus).getPhaseHash());
   }
 
   @Test
@@ -393,23 +369,7 @@ public class BuildCacheImplTest {
     MojoExecution mojoCompile = HashUtilTest.mockMojoExecution("test");
     projectStatus = buildCache.getProjectStatus(session, mojoCompile);
     assertTrue(projectStatus.isBuildCacheEnabled());
-    assertNull(projectStatus.getTest().getPhaseDetails());
-    assertNull(projectStatus.getTest().getPhaseHash());
-  }
-
-  @Test
-  public void testGetProjectStatusInTestPhaseException() throws Exception {
-
-    MojoExecution mojoExecution = HashUtilTest.mockMojoExecution("initialize");
-    ProjectBuildStatus projectStatus = buildCache.getProjectStatus(session, mojoExecution);
-
-    Mockito.when(project.getResources()).thenThrow(RuntimeException.class);
-    mojoExecution = HashUtilTest.mockMojoExecution("test");
-    projectStatus = buildCache.getProjectStatus(session, mojoExecution);
-
-    assertFalse(projectStatus.isBuildCacheEnabled());
-    assertFalse(projectStatus.getTest().isConfigured());
-    Mockito.verify(project, Mockito.times(1)).getResources();
+    Mockito.verifyNoInteractions(hashUtil);
   }
 
   @Test

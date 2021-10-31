@@ -62,8 +62,13 @@ public class HashUtilTest {
   @BeforeEach
   public void init() throws Exception {
     Logger logger = Mockito.mock(Logger.class);
+
+    FileUtil fileUtil = new FileUtil();
+    fileUtil.setLogger(logger);
+
     hashUtil = new HashUtil();
     hashUtil.setLogger(logger);
+    hashUtil.setFileUtil(fileUtil);
   }
 
   @Test
@@ -367,7 +372,7 @@ public class HashUtilTest {
     assertEquals("d8e8fca2dc0f896fd7cb4cb0031ba249", hashUtil.hashFileContent(testFile));
   }
 
-  public static Set<Artifact> mockDependencies() {
+  private Set<Artifact> mockDependencies() {
     Artifact dependency1 = mockArtifact("com.test", "test-lib-b", "1.0.0", false);
     Artifact dependency2 = mockArtifact("com.test", "test-lib-a", "1.0.1", false);
     Artifact dependency3 = mockArtifact("com.foo", "test-lib-x", "2.0.0", false);
@@ -383,7 +388,7 @@ public class HashUtilTest {
     return dependencies;
   }
 
-  public static Artifact mockArtifact(String groupId, String artifactId, String version,
+  private Artifact mockArtifact(String groupId, String artifactId, String version,
       boolean isSnapshot) {
     Artifact dependency = Mockito.mock(Artifact.class);
     Mockito.when(dependency.getGroupId()).thenReturn(groupId);
