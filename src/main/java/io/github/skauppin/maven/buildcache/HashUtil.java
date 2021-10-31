@@ -185,7 +185,7 @@ public class HashUtil {
       String[] filenames = fileUtil.scanFiles(set);
       if (logWarningWhenNoFilesFound && filenames.length == 0) {
         logger.warn(
-            String.format("buildcache: fileSet configured in buildcache.xml results empty: %s",
+            String.format("buildcache: fileset configured in buildcache.xml results empty: %s",
                 set.getDirectory()));
       }
       String sourceHashList = getFileHashList(set.getDirectory(), filenames);

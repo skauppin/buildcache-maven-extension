@@ -77,6 +77,8 @@ public class FileUtil {
         FileSet match = optMatch.get();
         FileSet mergedCopy = mergeFileSets(match, set);
         replaceFileSet(primaryCopy, match, mergedCopy);
+        logger
+            .info("buildcache: user-defined fileset overrides default for " + match.getDirectory());
 
       } else {
         Optional<FileSet> optMatchAdditional = getMatchingFileSet(additional, set);
