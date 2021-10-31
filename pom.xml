@@ -4,7 +4,7 @@
 
   <groupId>io.github.skauppin.maven</groupId>
   <artifactId>buildcache-maven-extension</artifactId>
-  <version>0.0.2</version>
+  <version>0.0.3-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>buildcache-maven-extension</name>
@@ -22,7 +22,7 @@
     <connection>scm:git:ssh://git@github.com/skauppin/buildcache-maven-extension.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/skauppin/buildcache-maven-extension.git</developerConnection>
     <url>https://github.com/skauppin/buildcache-maven-extension</url>
-    <tag>buildcache-maven-extension-0.0.2</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <distributionManagement>
