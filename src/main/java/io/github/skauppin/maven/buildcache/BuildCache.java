@@ -5,8 +5,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -111,6 +113,7 @@ public class BuildCache {
     String userHome = null;
     String mavenHome = null;
     boolean fullCacheClean = false;
+    List<File> activeConfigurationFiles = new ArrayList<>();
 
     try {
       try {
@@ -151,11 +154,13 @@ public class BuildCache {
       try {
         if (projectCacheConfigFile.exists()) {
           configuration.readProjectConfiguration(new FileInputStream(projectCacheConfigFile));
+          activeConfigurationFiles.add(projectCacheConfigFile);
         }
         config = cacheConfigurationFile;
         if (cacheConfigurationFile.exists()) {
           configuration.readCacheConfiguration(new FileInputStream(cacheConfigurationFile),
               defaultCacheDir.toString());
+          activeConfigurationFiles.add(cacheConfigurationFile);
         } else {
           configuration.setCachingDefaults(defaultCacheDir.toString());
         }
@@ -175,7 +180,8 @@ public class BuildCache {
       }
 
       this.initialized = true;
-      logger.info(String.format("buildcache: %s", buildCacheDisabled ? "disabled" : "enabled"));
+      logger.info(String.format("buildcache: %s %s", buildCacheDisabled ? "disabled" : "enabled",
+          activeConfigurationFiles.toString()));
 
     } catch (InitializationError e) {
       error = true;
