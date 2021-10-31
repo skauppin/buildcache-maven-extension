@@ -83,10 +83,8 @@ public class BuildCacheTest {
   public void testInitializeWithMissingConfiguration()
       throws IOException, ExpressionEvaluationException {
 
-    Mockito.when(evaluator.evaluate("${" + BuildCache.USER_HOME + "}"))
-        .thenReturn("/home/user");
-    Mockito.when(evaluator.evaluate("${" + BuildCache.BUILD_CACHE_DEBUG + "}"))
-        .thenReturn("true");
+    Mockito.when(evaluator.evaluate("${" + BuildCache.USER_HOME + "}")).thenReturn("/home/user");
+    Mockito.when(evaluator.evaluate("${" + BuildCache.BUILD_CACHE_DEBUG + "}")).thenReturn("true");
     Mockito.when(evaluator.evaluate("${" + BuildCache.BUILD_CACHE_PROFILE + "}"))
         .thenReturn("true");
     Mockito.when(evaluator.evaluate("${" + BuildCache.BUILD_CACHE_DISABLE + "}"))
@@ -146,8 +144,7 @@ public class BuildCacheTest {
   @Test
   public void testInitializeWithProjectConfiguration() throws Exception {
 
-    Mockito.when(evaluator.evaluate("${" + BuildCache.USER_HOME + "}"))
-        .thenReturn("/home/user");
+    Mockito.when(evaluator.evaluate("${" + BuildCache.USER_HOME + "}")).thenReturn("/home/user");
 
     Path tmpDir = prepareConfigurationFile(".mvn");
     Mockito.when(session.getExecutionRootDirectory()).thenReturn(tmpDir.toFile().getAbsolutePath());
@@ -207,8 +204,7 @@ public class BuildCacheTest {
 
   @Test
   public void testGetProjectStatusWhenDisabled() throws ExpressionEvaluationException {
-    Mockito.when(evaluator.evaluate("${" + BuildCache.MAVEN_MAIN_SKIP + "}"))
-        .thenReturn("true");
+    Mockito.when(evaluator.evaluate("${" + BuildCache.MAVEN_MAIN_SKIP + "}")).thenReturn("true");
     Mockito.when(evaluator.evaluate("${" + BuildCache.BUILD_CACHE_DISABLE + "}"))
         .thenReturn("true");
 

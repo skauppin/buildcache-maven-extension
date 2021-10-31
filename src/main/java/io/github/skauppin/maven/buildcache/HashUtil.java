@@ -71,8 +71,8 @@ public class HashUtil {
 
     StringBuilder phaseDetailsBuffer = new StringBuilder();
 
-    String mainClassesDependency = String.format("%s:classes-%s",
-        BuildCache.getProjectId(project), projectStatus.getMainCompile().getPhaseHash());
+    String mainClassesDependency = String.format("%s:classes-%s", BuildCache.getProjectId(project),
+        projectStatus.getMainCompile().getPhaseHash());
 
     String testClassesDependency = String.format("%s:test-classes-%s",
         BuildCache.getProjectId(project), projectStatus.getTestCompile().getPhaseHash());
