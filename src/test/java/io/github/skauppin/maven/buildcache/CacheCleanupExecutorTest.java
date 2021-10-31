@@ -15,13 +15,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-public class CacheCleanupExecutorImplTest {
+public class CacheCleanupExecutorTest {
 
   private Configuration configuration;
   private FileUtil fileUtil;
   private Logger logger;
 
-  private CacheCleanupExecutorImpl executor;
+  private CacheCleanupExecutor executor;
 
   private static final long NOW = toEpochMillis("2021-09-14T10:00:00Z");
 
@@ -37,7 +37,7 @@ public class CacheCleanupExecutorImplTest {
     this.fileUtil = Mockito.mock(FileUtil.class);
     this.logger = Mockito.mock(Logger.class);
 
-    executor = new CacheCleanupExecutorImpl();
+    executor = new CacheCleanupExecutor();
     executor.setFileUtil(fileUtil);
     executor.setLogger(logger);
   }
@@ -56,7 +56,7 @@ public class CacheCleanupExecutorImplTest {
   }
 
   private boolean isBuildCacheFile(String filename) {
-    return CacheCleanupExecutorImpl.isBuildCacheFile(filename);
+    return CacheCleanupExecutor.isBuildCacheFile(filename);
   }
 
   @Test
@@ -71,21 +71,21 @@ public class CacheCleanupExecutorImplTest {
     Mockito.when(f3.lastModified()).thenReturn(8L);
 
     List<File> files = Arrays.asList(f1, f2, f3);
-    CacheCleanupExecutorImpl.sortLastModifiedAscending(files);
+    CacheCleanupExecutor.sortLastModifiedAscending(files);
 
     assertEquals(Arrays.asList(f3, f2, f1), files);
   }
 
   @Test
   public void testByteAmountForOutput() {
-    assertEquals("0 bytes", CacheCleanupExecutorImpl.byteAmountForOutput(0));
-    assertEquals("1023 bytes", CacheCleanupExecutorImpl.byteAmountForOutput(1023));
-    assertEquals("1.0 Kb", CacheCleanupExecutorImpl.byteAmountForOutput(1024));
-    assertEquals("10.0 Kb", CacheCleanupExecutorImpl.byteAmountForOutput(10 * 1024));
-    assertEquals("512.1 Kb", CacheCleanupExecutorImpl.byteAmountForOutput(1024 * 512 + 100));
-    assertEquals("1.0 Mb", CacheCleanupExecutorImpl.byteAmountForOutput(1024 * 1024));
-    assertEquals("1.4 Mb", CacheCleanupExecutorImpl.byteAmountForOutput(1424 * 1024));
-    assertEquals("1224.0 Mb", CacheCleanupExecutorImpl.byteAmountForOutput(1224 * 1024 * 1024));
+    assertEquals("0 bytes", CacheCleanupExecutor.byteAmountForOutput(0));
+    assertEquals("1023 bytes", CacheCleanupExecutor.byteAmountForOutput(1023));
+    assertEquals("1.0 Kb", CacheCleanupExecutor.byteAmountForOutput(1024));
+    assertEquals("10.0 Kb", CacheCleanupExecutor.byteAmountForOutput(10 * 1024));
+    assertEquals("512.1 Kb", CacheCleanupExecutor.byteAmountForOutput(1024 * 512 + 100));
+    assertEquals("1.0 Mb", CacheCleanupExecutor.byteAmountForOutput(1024 * 1024));
+    assertEquals("1.4 Mb", CacheCleanupExecutor.byteAmountForOutput(1424 * 1024));
+    assertEquals("1224.0 Mb", CacheCleanupExecutor.byteAmountForOutput(1224 * 1024 * 1024));
   }
 
   @Test

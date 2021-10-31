@@ -39,7 +39,7 @@ public class BuildCacheImplTest {
   private FileUtil fileUtil;
   private HashUtil hashUtil;
   private Configuration configuration;
-  private CacheCleanupExecutorImpl fullCacheCleanupExecutor;
+  private CacheCleanupExecutor fullCacheCleanupExecutor;
   private BuildCacheImpl buildCache;
 
   private MavenExecutionPlan mockMavenExecutionPlan;
@@ -54,7 +54,7 @@ public class BuildCacheImplTest {
     fileUtil = Mockito.mock(FileUtil.class);
     hashUtil = Mockito.mock(HashUtil.class);
     configuration = Mockito.mock(Configuration.class);
-    fullCacheCleanupExecutor = Mockito.mock(CacheCleanupExecutorImpl.class);
+    fullCacheCleanupExecutor = Mockito.mock(CacheCleanupExecutor.class);
 
     Build build = Mockito.mock(Build.class);
     Mockito.when(build.getDirectory()).thenReturn("/project/target");
