@@ -72,10 +72,10 @@ public class HashUtil {
     StringBuilder phaseDetailsBuffer = new StringBuilder();
 
     String mainClassesDependency = String.format("%s:classes-%s",
-        BuildCacheImpl.getProjectId(project), projectStatus.getMainCompile().getPhaseHash());
+        BuildCache.getProjectId(project), projectStatus.getMainCompile().getPhaseHash());
 
     String testClassesDependency = String.format("%s:test-classes-%s",
-        BuildCacheImpl.getProjectId(project), projectStatus.getTestCompile().getPhaseHash());
+        BuildCache.getProjectId(project), projectStatus.getTestCompile().getPhaseHash());
 
     Pair<List<FileSet>> mergedFileSets1 =
         fileUtil.mergeResourcesToFileSets(project.getResources(), configuredFileSets);

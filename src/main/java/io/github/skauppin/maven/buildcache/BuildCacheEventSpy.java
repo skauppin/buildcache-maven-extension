@@ -80,7 +80,7 @@ public class BuildCacheEventSpy extends AbstractEventSpy {
 
         if (buildCacheDebug) {
           logger.info(String.format("buildcache: %s %s",
-              BuildCacheImpl.getProjectId(session.getCurrentProject()), projectStatus));
+              BuildCache.getProjectId(session.getCurrentProject()), projectStatus));
         }
       }
 

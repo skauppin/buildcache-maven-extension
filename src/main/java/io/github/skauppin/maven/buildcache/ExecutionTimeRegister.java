@@ -24,7 +24,7 @@ public class ExecutionTimeRegister {
 
   public void record(MavenProject project, MojoExecution mojoExecution, long execTimeMillis,
       boolean skipped) {
-    String key = BuildCacheImpl.getProjectId(project);
+    String key = BuildCache.getProjectId(project);
     projectExecutions.computeIfAbsent(key, s -> new ProjectExecution(project)).record(mojoExecution,
         execTimeMillis, skipped);
   }

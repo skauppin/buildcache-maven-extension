@@ -29,7 +29,7 @@ import org.mockito.Mockito;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-public class BuildCacheImplTest {
+public class BuildCacheTest {
 
   private MavenProject project;
   private MavenSession session;
@@ -40,7 +40,7 @@ public class BuildCacheImplTest {
   private HashUtil hashUtil;
   private Configuration configuration;
   private CacheCleanupExecutor fullCacheCleanupExecutor;
-  private BuildCacheImpl buildCache;
+  private BuildCache buildCache;
 
   private MavenExecutionPlan mockMavenExecutionPlan;
 
@@ -69,7 +69,7 @@ public class BuildCacheImplTest {
     Mockito.when(lifecycleExecutor.calculateExecutionPlan(session, "verify"))
         .thenReturn(mockMavenExecutionPlan);
 
-    buildCache = new BuildCacheImpl();
+    buildCache = new BuildCache();
     buildCache.setExpressionEvaluatorProvider(s -> evaluator);
     buildCache.setLogger(Mockito.mock(Logger.class));
     buildCache.setLifecycleExecutor(lifecycleExecutor);
@@ -83,17 +83,17 @@ public class BuildCacheImplTest {
   public void testInitializeWithMissingConfiguration()
       throws IOException, ExpressionEvaluationException {
 
-    Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.USER_HOME + "}"))
+    Mockito.when(evaluator.evaluate("${" + BuildCache.USER_HOME + "}"))
         .thenReturn("/home/user");
-    Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.BUILD_CACHE_DEBUG + "}"))
+    Mockito.when(evaluator.evaluate("${" + BuildCache.BUILD_CACHE_DEBUG + "}"))
         .thenReturn("true");
-    Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.BUILD_CACHE_PROFILE + "}"))
+    Mockito.when(evaluator.evaluate("${" + BuildCache.BUILD_CACHE_PROFILE + "}"))
         .thenReturn("true");
-    Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.BUILD_CACHE_DISABLE + "}"))
+    Mockito.when(evaluator.evaluate("${" + BuildCache.BUILD_CACHE_DISABLE + "}"))
         .thenReturn("true");
-    Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.MAVEN_COMPILER_SOURCE + "}"))
+    Mockito.when(evaluator.evaluate("${" + BuildCache.MAVEN_COMPILER_SOURCE + "}"))
         .thenReturn("1.8");
-    Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.MAVEN_COMPILER_TARGET + "}"))
+    Mockito.when(evaluator.evaluate("${" + BuildCache.MAVEN_COMPILER_TARGET + "}"))
         .thenReturn("1.6");
 
     buildCache.initializeSession(session);
@@ -105,9 +105,9 @@ public class BuildCacheImplTest {
     assertTrue(buildCache.isBuildCacheDebug());
     assertTrue(buildCache.isBuildCacheProfile());
     assertEquals("1.8",
-        buildCache.getCompilePhaseProperties().get(BuildCacheImpl.MAVEN_COMPILER_SOURCE));
+        buildCache.getCompilePhaseProperties().get(BuildCache.MAVEN_COMPILER_SOURCE));
     assertEquals("1.6",
-        buildCache.getCompilePhaseProperties().get(BuildCacheImpl.MAVEN_COMPILER_TARGET));
+        buildCache.getCompilePhaseProperties().get(BuildCache.MAVEN_COMPILER_TARGET));
     Mockito.verify(configuration).setCachingDefaults(Mockito.eq("/home/user/.m2/buildcache"));
     Mockito.verifyNoMoreInteractions(configuration);
     Mockito.verify(fullCacheCleanupExecutor).initialize(Mockito.any());
@@ -118,7 +118,7 @@ public class BuildCacheImplTest {
   public void testInitializeWithFullCacheCleanup()
       throws IOException, ExpressionEvaluationException {
 
-    Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.BUILD_CACHE_FULL_CLEAN + "}"))
+    Mockito.when(evaluator.evaluate("${" + BuildCache.BUILD_CACHE_FULL_CLEAN + "}"))
         .thenReturn("true");
 
     buildCache.initializeSession(session);
@@ -146,7 +146,7 @@ public class BuildCacheImplTest {
   @Test
   public void testInitializeWithProjectConfiguration() throws Exception {
 
-    Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.USER_HOME + "}"))
+    Mockito.when(evaluator.evaluate("${" + BuildCache.USER_HOME + "}"))
         .thenReturn("/home/user");
 
     Path tmpDir = prepareConfigurationFile(".mvn");
@@ -167,7 +167,7 @@ public class BuildCacheImplTest {
   public void testInitializeWithGlobalConfiguration() throws Exception {
 
     Path tmpDir = prepareConfigurationFile(".m2");
-    Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.USER_HOME + "}")).thenReturn(tmpDir);
+    Mockito.when(evaluator.evaluate("${" + BuildCache.USER_HOME + "}")).thenReturn(tmpDir);
 
     buildCache.initializeSession(session);
 
@@ -207,9 +207,9 @@ public class BuildCacheImplTest {
 
   @Test
   public void testGetProjectStatusWhenDisabled() throws ExpressionEvaluationException {
-    Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.MAVEN_MAIN_SKIP + "}"))
+    Mockito.when(evaluator.evaluate("${" + BuildCache.MAVEN_MAIN_SKIP + "}"))
         .thenReturn("true");
-    Mockito.when(evaluator.evaluate("${" + BuildCacheImpl.BUILD_CACHE_DISABLE + "}"))
+    Mockito.when(evaluator.evaluate("${" + BuildCache.BUILD_CACHE_DISABLE + "}"))
         .thenReturn("true");
 
     ProjectBuildStatus projectStatus = buildCache.getProjectStatus(session);
@@ -663,37 +663,37 @@ public class BuildCacheImplTest {
   @Test
   public void testNonEmptyPropertyValue_null() throws ExpressionEvaluationException {
     Mockito.when(evaluator.evaluate(Mockito.anyString())).thenReturn(null);
-    assertFalse(BuildCacheImpl.nonEmptyPropertyValue(evaluator, "test"));
+    assertFalse(BuildCache.nonEmptyPropertyValue(evaluator, "test"));
   }
 
   @Test
   public void testNonEmptyPropertyValue_empty() throws ExpressionEvaluationException {
     Mockito.when(evaluator.evaluate(Mockito.anyString())).thenReturn("");
-    assertFalse(BuildCacheImpl.nonEmptyPropertyValue(evaluator, "test"));
+    assertFalse(BuildCache.nonEmptyPropertyValue(evaluator, "test"));
   }
 
   @Test
   public void testNonEmptyPropertyValue_value() throws ExpressionEvaluationException {
     Mockito.when(evaluator.evaluate(Mockito.anyString())).thenReturn("X");
-    assertTrue(BuildCacheImpl.nonEmptyPropertyValue(evaluator, "test"));
+    assertTrue(BuildCache.nonEmptyPropertyValue(evaluator, "test"));
   }
 
   @Test
   public void testCheckProperty_null() throws ExpressionEvaluationException {
     Mockito.when(evaluator.evaluate(Mockito.anyString())).thenReturn(null);
-    assertEquals(false, BuildCacheImpl.checkProperty(evaluator, "property"));
+    assertEquals(false, BuildCache.checkProperty(evaluator, "property"));
   }
 
   @Test
   public void testCheckProperty_true() throws ExpressionEvaluationException {
     Mockito.when(evaluator.evaluate(Mockito.anyString())).thenReturn("True");
-    assertEquals(true, BuildCacheImpl.checkProperty(evaluator, "property"));
+    assertEquals(true, BuildCache.checkProperty(evaluator, "property"));
   }
 
   @Test
   public void testCheckProperty_notTrue() throws ExpressionEvaluationException {
     Mockito.when(evaluator.evaluate(Mockito.anyString())).thenReturn("foo");
-    assertEquals(false, BuildCacheImpl.checkProperty(evaluator, "property"));
+    assertEquals(false, BuildCache.checkProperty(evaluator, "property"));
   }
 
 }

@@ -285,7 +285,7 @@ public class Configuration {
   }
 
   private List<FileSet> getOrEmpty(String keyPart1, MavenProject project) {
-    String key = mapKey(keyPart1, BuildCacheImpl.getProjectId(project));
+    String key = mapKey(keyPart1, BuildCache.getProjectId(project));
     if (!projectPathMap.containsKey(key)) {
       key = mapKey(keyPart1, project.getArtifactId());
     }
