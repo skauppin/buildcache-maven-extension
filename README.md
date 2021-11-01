@@ -39,6 +39,8 @@ Then building the project, for example `mvn clean verify`, you'll get the normal
 Building the project again makes use of the cached data
 
 ```
+[INFO] buildcache: enabled []
+...
 [INFO] --- maven-compiler-plugin:3.8.0:compile (default-compile) ---
 [INFO] buildcache: cache hit - using cached main classes (ad320a1fb350ca665e1042f147645d3a)
 
@@ -56,14 +58,16 @@ You should not use the buildcache when doing release builds. If the extension is
 $> mvn clean verify -Dbuildcache.disable
 ```
 
-# Complete Guide (Work in progress..)
+# Complete Guide
 This documentation provides information about how the Buildcache extension works and how to configure it.
 
 ### Overview - How Does It Work?
 
 Buildcache is a Maven extension. It participates in the build lifecycle by caching compiled classes and test execution results, and skips execution of specific build phases on subsequent runs if cached data is available.
 
-To detect whether cached data is available for a build phase the extension calculates a hash value of relavant project details. If you have executed the build before and none of the relevant details have not changed then cached data can be used instead of executing the build phase. But if some of the relevant details have changed then the hash value changes and the new value doesn't match to cached data, which results in executing the build phase and, in case of successful build, caching the new data.
+To detect whether cached data is available for a build phase the extension calculates a hash value of relavant project details and does a cache lookup using the hash value as a key. If you have executed the build before and none of the relevant details have not changed then cached data is found and being used instead of executing the build phase. But in case some of the relevant details have changed then the hash value changes and the new value doesn't match to cached data, which results in executing the build phase and, in case of successful build, caching the new data.
+
+There are basically four different phases in the build which are affected by the Buildcache extension: *compiling sources*, *compiling test sources*, *executing unit tests*, and *executing integration tests*. Both of the compile phases are handled in a similar manner and result in caching compiled (and possibly processed) `.class` files. Both of the test phases are also handled similarly and result in caching a note that test execution has succeeded. Caching happens only for successful build.
 
 The table below describes the functionality briefly for each build phase
 
@@ -75,21 +79,25 @@ The table below describes the functionality briefly for each build phase
 | Integration test  | Compile hash, Test compile hash, resource files, test resource files, plugins, *additional triggers**        | *test execution success*** | `pre-integration-test`, `integration-test`, `post-integration-test`
 
 *additional triggers** -- user configured filesets (see [Configuration](#project-specific-configuration))
-*test execution success*** -- no project data cached, but just information that the build passed, and thus tests or integration tests passed
+
+*test execution success*** -- no project data cached, but just information that tests or integration tests passed
+
+### Special Maven Build Properties
+
+There are some Maven build properties that affect Buildcache behaviour.
+
+| Element             | Description | Buildcache behavior |
+| --------------------| ----------- | ------------------- |
+| `maven.main.skip`   | Compiling main classes skipped | Buildcache disabled for the build |
+| `maven.test.skip`   | Compiling and running test skipped | Test classes, unit test execution result, and integration test result won't be cached |
+| `skipTests`         | Tests not executed | Unit test execution result and integration test result won't be cached |
+| `skipITs`           | Integration tests not executed | Integration test result won't be cached |
+| `test=[PATTERN]`    | Subset of unit tests executed | Test result won't be cached |
+| `it.test=[PATTERN]` | Subset of integration tests executed | Ingeration test result won't be cached |
+
+### Cache Location
 
 Default cache location is `[user.home]/.m2/buildcache` but another directory can be configured (see [Configuration](#global-cache-configuration))
-
-### Default Functionality
-
-* more information about the files included in the hash calculation
-
-and
-- maven.main.skip
-- maven.test.skip
-- skipTests
-- skipITs
-- test=X
-- it.test=X
 
 ### Configuration
 
@@ -194,9 +202,9 @@ The example fileset would match files from `[ROOT-com.test:test-lib]/test-data` 
 * all files from directory `a` except for `a.txt`
 * all files recursively from directory `b`, like `b/b.txt` and `b/b2/b2.txt`
 
-#### Global Cache Configuration
+#### Cache Configuration
 
-Cache directory and size can be configured using a simple XML. The config files are looked up in order and first existing file is loaded
+Cache directory and size can be configured using a simple XML. The config files are looked up in order and first existing one is loaded
 
 1. `{user.home}/.m2/buildcache.xml`
 2. `{maven.home}/conf/buildcache.xml`
@@ -214,32 +222,59 @@ Syntax is
 </buildcache>
 ```
 
-all elements are optional.
+all elements are optional. If this configuration file is found then the defaults no longer apply (see table below), except for the `cache-directory`.
 
-| Element               | Description |
-| ---------------------- | ----------- |
-| `cache-directory`           | Directory used for cached data, default is  `{user.home}/.m2/buildcache` |
-| `project-cache-max-size`    | Maximum size of a cache directory for a single project in megabytes. Not set by default. |
-| `project-cache-max-entries` | Maximum number of cached entries for a single project. Only the `.zip` (containing `.class` files) are counted against this limit. Default `20`. |
-| `project-cache-max-age`     | Maximum age for files in a project cache directory. Default `90`. Integer (days) or `java.time.Duration` |
-| `total-cache-max-size`      | Total size limit for the whole cache directory in megabytes. Not set by default. |
+| Element                     | Description | Default |
+| --------------------------- | ----------- | ------- |
+| `cache-directory`           | Directory used for cached data | `{user.home}/.m2/buildcache` |
+| `project-cache-max-size`    | Maximum size of a cache directory for a single project in megabytes. For example `7`, `7M` or `7 MB` | |
+| `project-cache-max-entries` | Maximum number of cached entries for a single project. Only the `.zip` (containing `.class` files) are counted against this limit. `Integer` | `20` |
+| `project-cache-max-age`     | Maximum age for files in a project cache directory. `Integer` (days) or `java.time.Duration` | `90` |
+| `total-cache-max-size`      | Total size limit for the whole cache directory in megabytes. For example `500`, `500M` or `500 MB` | |
 
-The project-specific cache size limits are enforced on every build. Total cache size limit is enforced when the Maven build is invoked with `-Dbuildcache.fullclean` flag.
-
+The project-specific cache limits are enforced on every build for the project being built. Total cache size limit is enforced only when the Maven build is invoked with `-Dbuildcache.fullclean` flag.
 
 #### Command-Line Properties
+
+There are some properties that affect the Buildcache behavior.
 
 | Property               | Description |
 | ---------------------- | ----------- |
 | `buildcache.disable`   | Maven build is executed as if the Buildcache wasn't there |
-| `buildcache.ignore`    | Possible cache hits are ignored and overwritten by new data in case of successful build|
+| `buildcache.ignore`    | Possible cache hits are ignored and cache entries overwritten by new data |
 | `buildcache.fullclean` | Performs cache cleanup for all data in the cache directory |
 | `buildcache.profile`   | Outputs profiling information for the build |
 | `buildcache.debug`     | Does more verbose logging and outputs `.txt` files to project cache directory showing full hash input |
 
-### Debugging
+For example, executing `mvn clean package -Dbuildcache.profile` will print execution time of each plugin goal
+
+```
+[INFO] ------------------------------------------------------------------------
+[INFO] test-lib
+[INFO]   clean ................... org.a...:maven-clean-plugin:3.1.0:clean .............. [  0.102 s]
+[INFO]   validate ................ org.a...:maven-enforcer-plugin:3.0.0-M3:enforce ...... [  0.226 s]
+[INFO]   process-resources ....... org.a...:maven-resources-plugin:3.0.2:resources ...... [  0.137 s]
+[INFO]   compile ................. org.a...:maven-compiler-plugin:3.8.1:compile ......... [  0.080 s] (cache hit)
+[INFO]   process-test-resources .. org.a...:maven-resources-plugin:3.0.2:testResources .. [  0.023 s]
+[INFO]   test-compile ............ org.a...:maven-compiler-plugin:3.8.1:testCompile ..... [  0.038 s] (cache hit)
+[INFO]   test .................... org.a...:maven-surefire-plugin:3.0.0-M5:test ......... [  0.027 s] (cache hit)
+[INFO]   package ................. org.a...:maven-jar-plugin:3.0.2:jar .................. [  0.450 s]
+```
 
 ### Cache Cleanup
+
+The project-specific cache limits are enforced on every build for the project being built. Total cache size limit is enforced only when the Maven build is invoked with `-Dbuildcache.fullclean` flag.
+
+### Debugging
+
+Sometimes it may be useful to see what is being used as the input for the hash calculation. Executing the build with `-Dbuilbcache.debug` will create `.txt` files to the project cache directory that will contain the hash input.
+
+Maven output shows the hash values
+```
+[INFO] buildcache: caching main classes (ad320a1fb350ca665e1042f147645d3a)
+[INFO] buildcache: caching test classes (cc6dc6f89f980a1b9c5ce7bc80c5598b)
+```
+and you can then find a files `classes-ad320a1fb350ca665e1042f147645d3a.txt` and `test-classes-cc6dc6f89f980a1b9c5ce7bc80c5598b.txt` from the project buildcache directory (for example `{user.home}/.m2/buildcache/com/test/test-lib/`). Test and integration test executions also have similar files.
 
 # Reporting Issues
 https://github.com/skauppin/buildcache-maven-extension/issues
